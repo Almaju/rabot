@@ -22,8 +22,8 @@ The rule catalogue lives in [RULES.md](./RULES.md). This document is the *how*.
 | rabot is | rabot is not |
 |---|---|
 | A canonical-form checker with a real auto-fixer | A formatter — `rustfmt` already is one, and it has the options we refuse to add |
-| Opinionated to the point of being un-idiomatic (at the top tier) | A clippy replacement — clippy finds bugs, rabot removes choices |
-| Zero-configuration | A framework with a plugin API and per-rule severities |
+| Opinionated to the point of being un-idiomatic, with no gentler setting | A clippy replacement — clippy finds bugs, rabot removes choices |
+| Zero-configuration: one tier, no severities, no `#[allow]` | A framework with a plugin API and per-rule toggles |
 | Syntax-first, so it runs on stable Rust in milliseconds | A type checker — the type-aware rules are explicitly phase 6 |
 
 Where a rule overlaps clippy (`unwrap_used`, `wildcard_imports`, …) rabot still
@@ -33,9 +33,10 @@ a team can choose.
 
 ---
 
-## 2. Decisions to make before code
+## 2. Decisions
 
-These four shape the architecture. My recommendation is marked **✔**.
+These four shaped the architecture; each is settled, with the alternatives kept so
+a later reversal is an informed one. **✔** marks what we are building.
 
 ### 2.1 Front end
 
@@ -58,49 +59,67 @@ produces the byte ranges of every comment and every blank-line run. That lexer
 is also what lets the fixer move an item *together with* its attributes and doc
 comments.
 
-### 2.2 Configuration: none
+### 2.2 Configuration: none ✔
 
-Canon's formatter has no options, so neither does rabot. No `rabot.toml`, no
-per-rule severity, no `#[allow]`.
+Canon's formatter has no options, so neither does rabot. **No configuration file
+of any kind** — no `rabot.toml`, no per-rule severity, no name blocklists, no
+configurable world boundary (it is fixed by path, see RULES.md `caps/*`).
 
-Tiers still have to be selectable, and Canon's own answer to "config files
-restate what the tree already says" is a marker in the tree. So: the tier is
-named by an empty marker file at the repo root.
+Escape hatches are absent too: `#[allow(…)]`, `#[expect(…)]` and
+`// rabot: ignore` are themselves violations (`meta/no-suppression`). There is no
+mechanism to exempt a line, a file or a rule.
 
-```
-.rabot/strict        # absent → core tier
-.rabot/canonical
-```
+The only selectivity is on the command line, for triage while fixing a tree:
+`--only order/` and `--except caps/` narrow one run. They are arguments, not
+state — nothing on disk remembers them, and CI passes neither. Concretely, the
+engine has no `Config` type at all; rules take no parameters.
 
-`rabot use strict` creates the marker; `rabot use` prints the active tier and
-why. One word, versioned in git, nothing to argue about.
+Consequences we accept rather than design around: a team cannot adopt rabot
+gradually, and a rule we get wrong is a rule everyone must live with until it
+changes in the binary. If that proves untenable, the smallest faithful retreat is
+a *tier* (a named subset of the catalogue selected by an empty marker file such as
+`.rabot/core`, since Canon's answer to configuration is the file tree) — not a
+severity table. Deliberately not built now.
 
-Escape hatches are deliberately absent: `#[allow(...)]`, `#[expect(...)]` and
-`// rabot: ignore` are themselves violations (`meta/no-suppression`). The only
-exits are the tier and `--only`/`--except` on the command line for triage, which
-CI does not pass.
+### 2.3 How far into anti-idiomatic Rust: all the way ✔
 
-### 2.3 How far into anti-idiomatic Rust
+**One tier, and it is canonical.** No `if`, no `let`, no comments, no wildcard
+arms, one type per file, from the first run. Every rule in RULES.md is an error.
 
-Three tiers, each a superset. A rule's tier is part of its identity, not a
-setting:
+This is the purest statement of the idea and the reason the tool is worth
+building; it also means rabot's verdict on any existing Rust codebase is
+"thousands of violations", which is information about the codebase and not a
+usability bug. The rejected alternatives (a `core` tier of mechanical rules, or a
+`core`/`strict`/`canonical` ladder) stay documented in §2.2's retreat path.
 
-- **core** — every rule whose fix has exactly one answer and whose result a
-  normal Rust team would accept: all of `order/*`, `determinism/*`,
-  `structure/*`, `errors/*`, `caps/*`. This is the tier we recommend and the
-  one CI examples use.
-- **strict** — adds the rules that fight convention but not the language:
-  `types/newtype-primitives`, `names/single-use-let`, `comments/no-comments`
-  (doc comments survive), `form/no-loop-keywords`.
-- **canonical** — the full doctrine: no `if` at all, no untyped `let`, no doc
-  comments, one type per file, inclusive ranges, evidence-returning effects.
-  Explicitly a statement, not a recommendation.
+Two design duties follow from having no tiers:
 
-### 2.4 Dogfooding
+1. **A rule must be right, because nobody can turn it off.** Every rule ships with
+   fixtures for what it must *not* flag, and any rule whose false-positive story
+   is unresolved stays out of the catalogue instead of shipping "off by default".
+2. **The report must stay legible at volume.** `rabot check` on a normal crate
+   emits thousands of diagnostics, so the default output leads with a per-rule
+   summary table (count, fixable count) and prints details grouped by rule, with
+   `--details` for the full snippet stream.
 
-rabot's own source passes **strict** in CI, and every violation of `canonical`
-in its own tree is listed in `docs/DOGFOOD.md` with a reason. A linter that
-can't survive its own top tier should say so out loud rather than ship the tier.
+### 2.4 Dogfooding, honestly
+
+rabot is written in Rust, so rabot cannot pass rabot: `names/no-let` and
+`form/no-if` together are effectively unwritable for a program that parses,
+diffs and rewrites text, and `comments/no-doc-comments` would strip the rule
+documentation that `rabot explain` prints.
+
+We do not paper over that with a hidden exemption for our own tree. Instead:
+
+- CI runs `rabot check` on rabot and stores the report.
+- CI **fails on regression**, not on non-zero: a checked-in
+  `docs/DOGFOOD.md` records the exact per-rule counts, and the build breaks when
+  a count rises.
+- Every rule we cannot satisfy in our own source is listed there with the reason,
+  in public.
+
+That makes the tension visible where a reader can judge it, which is the
+alternative to either lying or watering down the catalogue.
 
 ---
 
@@ -124,7 +143,6 @@ the fix engine stays testable without rules.
 ```rust
 pub struct RuleMeta {
     pub id: &'static str,          // "order/enum-variants"
-    pub tier: Tier,                // Core | Strict | Canonical
     pub needs: Needs,              // Syntax | Types
     pub fixable: Fixable,          // Always | Sometimes | Never
     pub canon: &'static str,       // link into the Canon philosophy section it comes from
@@ -199,10 +217,14 @@ doesn't: `use` → `mod` → `const`/`static` → `type` → `struct`/`enum`/`un
 
 ### 3.5 Output
 
-- Default: rustc-style annotated snippets (`annotate-snippets`), one per
-  diagnostic, with the rule id and a `help:` line naming the fix.
+One tier means volume, so the default output is a summary first:
+
+- Default: a per-rule table (rule id, count, how many are auto-fixable, the
+  one-line doc), then annotated snippets grouped by rule and capped at 5 per rule
+  with an `… and N more` line. `--details` removes the cap.
 - `--format json`: stable schema for editors and CI (`{rule, path, span, message, fix}`).
 - `--format github`: `::error file=…,line=…::` workflow commands.
+- `--format counts`: just the table, which is what `docs/DOGFOOD.md` is generated from.
 - Exit codes: `0` clean, `1` violations, `2` internal error (parse failure,
   fixer verification failure).
 
@@ -214,10 +236,13 @@ Mirrors Canon's one-binary surface:
 rabot check [PATHS]        # default: the whole workspace, respecting .gitignore
 rabot check --fix          # fix what is mechanical, then re-check
 rabot check --diff         # print the fix as a patch, change nothing
+rabot check --only order/ --except caps/no-unsafe   # triage only; not state, not for CI
 rabot explain order/enum-variants
-rabot list [--tier strict] # the catalogue, machine-readable with --format json
-rabot use [strict|canonical]
+rabot list                 # the catalogue, machine-readable with --format json
 ```
+
+There is no `rabot init` and no `rabot use`: there is nothing to initialise and
+one tier to select.
 
 `rabot check` with no paths walks `**/*.rs` via the `ignore` crate, skipping
 `target/` and anything gitignored. Files are parsed and linted in parallel with
@@ -264,10 +289,10 @@ hand-written fixtures miss.
 | # | Deliverable | Why here |
 |---|---|---|
 | **M0** | Workspace, `SourceFile`, trivia lexer, diagnostics rendering, fix engine, fixture harness, and exactly one rule end-to-end: `order/enum-variants` with `--fix` | Proves the hard part (safe text edits with comments attached) before any breadth |
-| **M1** | All of `order/*` + `rabot explain` + `--format json` | The differentiator; nothing else on the market sorts *and* fixes Rust declarations |
+| **M1** | All of `order/*` + `rabot explain` + `--format json` + the summary table | The differentiator; nothing else on the market sorts *and* fixes Rust declarations |
 | **M2** | `form/*` and `dispatch/*` — including `form/no-if` desugaring to `match` with `false`/`true` arms in that order | The second-most visible Canon idea: branching is dispatch |
 | **M3** | `caps/*` + `determinism/*` | The rules with the highest real-world value: no ambient authority, no HashMap order leaking into output |
-| **M4** | `names/*`, `types/*`, `structure/*`, `comments/*`, `meta/*`, tiers + `.rabot/` marker | Completes the catalogue |
+| **M4** | `names/*`, `types/*`, `structure/*`, `comments/*`, `meta/*` — the catalogue complete, and `docs/DOGFOOD.md` generated in CI | One tier means the catalogue is the product; nothing ships half-enabled |
 | **M5** | Distribution: `cargo install`, prebuilt binaries, GitHub Action, pre-commit hook, `--format github` | Adoption |
 | **M6** | Optional type-aware back end (`Needs::Types`) behind a feature: real exhaustiveness, real purity, precise `caps/*` | Precision, once the shape is settled |
 
@@ -298,6 +323,12 @@ fixer has met real code.
 - **Overlapping fixes.** `order/items` and `comments/no-commented-code` can
   target the same bytes. The overlap-drop rule in §3.2 keeps a pass coherent,
   and the loop lets the loser land on the next pass.
+- **`comments/no-comments` deleting a comment that was load-bearing.** With one
+  tier, the comment fixer runs on everyone's code, and a deleted `// SAFETY:`
+  block is unrecoverable from the linter's side. So comment deletion is the one
+  fix `--fix` withholds unless `--fix-comments` is passed explicitly; `--diff`
+  still shows it. This is a safety valve on the *fixer*, not an exemption from
+  the rule — the diagnostic fires either way.
 
 ---
 
@@ -311,6 +342,8 @@ fixer has met real code.
   Rust traits are load-bearing and there is no Canon-faithful replacement to
   point at.
 - **1-based indexing.** Unreachable from a linter. Its cousin — one convention
-  for ranges — survives as `form/prefer-inclusive-range` at the canonical tier.
+  for ranges — survives as `form/prefer-inclusive-range`.
 - **A plugin API.** Every rule ships in the binary. Extensibility is another
   word for configuration.
+- **Tiers, profiles, severities, and `#[allow]`.** One tier, decided in §2.3.
+  The retreat path, if one is ever needed, is in §2.2.
