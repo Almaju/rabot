@@ -15,6 +15,7 @@ impl Check for Primitives {
         let mut visitor = Visitor {
             cx,
             findings: Findings::default(),
+            in_trait_impl: false,
             test_depth: usize::from(cx.in_test_file()),
         };
         visitor.visit_file(&cx.file.ast);
@@ -30,12 +31,14 @@ const PRIMITIVES: [&str; 20] = [
 struct Visitor<'a> {
     cx: &'a Context<'a>,
     findings: Findings,
+    /// Inside `impl Trait for T`, where the signatures are the trait's choice.
+    in_trait_impl: bool,
     test_depth: usize,
 }
 
 impl Visitor<'_> {
     fn check_signature(&mut self, sig: &syn::Signature) {
-        if self.test_depth > 0 {
+        if self.test_depth > 0 || self.in_trait_impl {
             return;
         }
         let mut by_type: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -91,6 +94,13 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         self.check_signature(&node.sig);
         syn::visit::visit_item_fn(self, node);
         self.test_depth -= usize::from(is_test);
+    }
+
+    fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
+        let was = self.in_trait_impl;
+        self.in_trait_impl = node.trait_.is_some();
+        syn::visit::visit_item_impl(self, node);
+        self.in_trait_impl = was;
     }
 
     fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {

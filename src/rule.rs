@@ -22,6 +22,7 @@ pub enum Rule {
     SortedFields,
     SortedImplItems,
     SortedStructLiteral,
+    SortedStructPattern,
     SortedTraitItems,
     SortedVariants,
     SyntaxError,
@@ -48,6 +49,7 @@ impl Rule {
             Rule::SortedFields,
             Rule::SortedImplItems,
             Rule::SortedStructLiteral,
+            Rule::SortedStructPattern,
             Rule::SortedTraitItems,
             Rule::SortedVariants,
             Rule::SyntaxError,
@@ -95,6 +97,7 @@ impl Rule {
                 "Impl items are ordered: consts, types, constructors, pub fns, private fns."
             }
             Rule::SortedStructLiteral => "Struct literal fields are sorted alphabetically.",
+            Rule::SortedStructPattern => "Struct pattern fields are sorted alphabetically.",
             Rule::SortedTraitItems => {
                 "Trait items are ordered: consts, types, then fns, each alphabetically."
             }
@@ -122,6 +125,7 @@ impl Rule {
                 | Rule::SortedFields
                 | Rule::SortedImplItems
                 | Rule::SortedStructLiteral
+                | Rule::SortedStructPattern
                 | Rule::SortedTraitItems
                 | Rule::SortedVariants
         )
@@ -141,6 +145,7 @@ impl Rule {
             Rule::SortedFields => "sorted-fields",
             Rule::SortedImplItems => "sorted-impl-items",
             Rule::SortedStructLiteral => "sorted-struct-literal",
+            Rule::SortedStructPattern => "sorted-struct-pattern",
             Rule::SortedTraitItems => "sorted-trait-items",
             Rule::SortedVariants => "sorted-variants",
             Rule::SyntaxError => "syntax-error",
@@ -169,6 +174,7 @@ impl Rule {
             | Rule::SortedFields
             | Rule::SortedImplItems
             | Rule::SortedStructLiteral
+            | Rule::SortedStructPattern
             | Rule::SortedTraitItems
             | Rule::SortedVariants
             | Rule::SyntaxError

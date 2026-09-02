@@ -17,6 +17,7 @@ impl Check for Structs {
         let mut visitor = Visitor {
             cx,
             findings: Findings::default(),
+            in_trait_impl: false,
             methods_per_type: BTreeMap::new(),
             test_depth: usize::from(cx.in_test_file()),
         };
@@ -29,6 +30,8 @@ impl Check for Structs {
 struct Visitor<'a> {
     cx: &'a Context<'a>,
     findings: Findings,
+    /// Inside `impl Trait for T`, where the signatures are the trait's choice.
+    in_trait_impl: bool,
     /// Inherent methods per self type, with the span of the first impl block.
     methods_per_type: BTreeMap<String, (proc_macro2::Span, usize)>,
     test_depth: usize,
@@ -94,6 +97,9 @@ impl Visitor<'_> {
     }
 
     fn check_parameter_count(&mut self, sig: &syn::Signature) {
+        if self.in_trait_impl {
+            return;
+        }
         let count = sig
             .inputs
             .iter()
@@ -155,6 +161,8 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     }
 
     fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
+        let was = self.in_trait_impl;
+        self.in_trait_impl = node.trait_.is_some();
         if node.trait_.is_none() && self.test_depth == 0 {
             let name = type_ident(&node.self_ty)
                 .map(ToString::to_string)
@@ -171,6 +179,7 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
             entry.1 += methods;
         }
         syn::visit::visit_item_impl(self, node);
+        self.in_trait_impl = was;
     }
 
     fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {

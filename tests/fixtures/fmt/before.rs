@@ -42,7 +42,11 @@ pub struct Store {
 
 impl Store {
     fn find(&self, id: &str) -> Option<&User> {
-        None
+        let User { name, email, .. } = &self.users[0];
+        match self.users.first() {
+            Some(User { id: found, created_at, .. }) if found == id => None,
+            _ => None,
+        }
     }
 
     /// Removes a user.

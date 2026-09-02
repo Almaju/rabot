@@ -80,6 +80,16 @@ fn main() {
     let config = std::env::var("CONFIG").expect("Config file required for startup");
 }
 
+fn destructure(user: &User) {
+    let User { id, email } = user;
+}
+
+impl serde::Serializer for User {
+    fn serialize_unit_variant(self, name: &str, variant: &str) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use mockall::automock;

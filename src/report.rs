@@ -1,7 +1,9 @@
 use std::io::{self, IsTerminal, Write};
 use std::path::Path;
 
-use crate::app::Outcome;
+use similar::{ChangeTag, TextDiff};
+
+use crate::app::{Change, Outcome};
 use crate::diagnostic::{Diagnostic, Level};
 
 /// How findings reach the user.
@@ -39,6 +41,7 @@ impl Style {
 /// Turns an [`Outcome`] into text on a writer.
 pub struct Report<'a> {
     color: bool,
+    diff: bool,
     format: Format,
     root: &'a Path,
 }
@@ -47,9 +50,16 @@ impl<'a> Report<'a> {
     pub fn new(format: Format, root: &'a Path) -> Self {
         Self {
             color: format == Format::Text && io::stdout().is_terminal(),
+            diff: false,
             format,
             root,
         }
+    }
+
+    /// Show a unified diff for every file `fmt` changed or would change.
+    pub fn with_diff(mut self, diff: bool) -> Self {
+        self.diff = diff;
+        self
     }
 
     pub fn write(&self, outcome: &Outcome, out: &mut dyn Write) -> io::Result<()> {
@@ -104,6 +114,34 @@ impl<'a> Report<'a> {
         writeln!(out)
     }
 
+    fn write_diff(&self, change: &Change, path: &str, out: &mut dyn Write) -> io::Result<()> {
+        let diff = TextDiff::from_lines(&change.before, &change.after);
+        writeln!(
+            out,
+            "{}",
+            self.paint(Style::Bold, &format!("--- {path}\n+++ {path} (rabot fmt)"))
+        )?;
+        for hunk in diff.unified_diff().context_radius(3).iter_hunks() {
+            writeln!(out, "{}", self.paint(Style::Location, &hunk.header().to_string()))?;
+            for change in hunk.iter_changes() {
+                let (style, sign) = match change.tag() {
+                    ChangeTag::Delete => (Style::Error, "-"),
+                    ChangeTag::Equal => (Style::Bold, " "),
+                    ChangeTag::Insert => (Style::Success, "+"),
+                };
+                let line = change.value().trim_end_matches('\n');
+                let text = format!("{sign}{line}");
+                let painted = if change.tag() == ChangeTag::Equal {
+                    text
+                } else {
+                    self.paint(style, &text)
+                };
+                writeln!(out, "{painted}")?;
+            }
+        }
+        writeln!(out)
+    }
+
     fn write_json(&self, outcome: &Outcome, out: &mut dyn Write) -> io::Result<()> {
         let diagnostics: Vec<serde_json::Value> = outcome
             .diagnostics
@@ -122,7 +160,7 @@ impl<'a> Report<'a> {
             })
             .collect();
         let body = serde_json::json!({
-            "changed": outcome.changed.iter().map(|path| self.relative(path)).collect::<Vec<_>>(),
+            "changed": outcome.changed.iter().map(|change| self.relative(&change.path)).collect::<Vec<_>>(),
             "diagnostics": diagnostics,
             "files_seen": outcome.files_seen,
         });
@@ -131,15 +169,19 @@ impl<'a> Report<'a> {
 
     fn write_text(&self, outcome: &Outcome, out: &mut dyn Write) -> io::Result<()> {
         for diagnostic in &outcome.diagnostics {
+            // In diff mode the diff is the report for anything fmt can fix.
+            if self.diff && diagnostic.rule.fixable() {
+                continue;
+            }
             self.write_diagnostic(diagnostic, out)?;
         }
-        for path in &outcome.changed {
-            writeln!(
-                out,
-                "{} {}",
-                self.paint(Style::Success, "reordered"),
-                self.relative(path)
-            )?;
+        for change in &outcome.changed {
+            let path = self.relative(&change.path);
+            if self.diff {
+                self.write_diff(change, &path, out)?;
+            } else {
+                writeln!(out, "{} {path}", self.paint(Style::Success, "reordered"))?;
+            }
         }
         let errors = outcome.count(Level::Error);
         let warnings = outcome.count(Level::Warn);

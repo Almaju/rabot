@@ -48,10 +48,18 @@ pub enum FormatMode {
     Write,
 }
 
+/// A file `fmt` rewrote, or would rewrite in check mode.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Change {
+    pub after: String,
+    pub before: String,
+    pub path: PathBuf,
+}
+
 /// The result of one run, whichever command produced it.
 #[derive(Debug, Default)]
 pub struct Outcome {
-    pub changed: Vec<PathBuf>,
+    pub changed: Vec<Change>,
     pub diagnostics: Vec<Diagnostic>,
     pub files_seen: usize,
 }
@@ -153,7 +161,6 @@ impl App {
             }
             let original = self.read(&path)?;
             if current.text != original {
-                outcome.changed.push(path.clone());
                 match mode {
                     FormatMode::Write => {
                         std::fs::write(&path, &current.text).map_err(|source| AppError::Write {
@@ -165,6 +172,11 @@ impl App {
                         outcome.diagnostics.extend(first_diagnostics.unwrap_or_default());
                     }
                 }
+                outcome.changed.push(Change {
+                    after: current.text,
+                    before: original,
+                    path,
+                });
             }
         }
         Ok(outcome.finish())

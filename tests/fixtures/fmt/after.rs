@@ -59,7 +59,11 @@ impl Store {
     }
 
     fn find(&self, id: &str) -> Option<&User> {
-        None
+        let User { email, name, .. } = &self.users[0];
+        match self.users.first() {
+            Some(User { created_at, id: found, .. }) if found == id => None,
+            _ => None,
+        }
     }
 }
 
