@@ -18,6 +18,15 @@ enum Piece {
 }
 
 impl SortKey {
+    /// A key that sorts as `sort_as` but is displayed as `label`, for names
+    /// whose position is decided by something other than their spelling.
+    pub fn labelled(label: &str, sort_as: &str) -> Self {
+        Self {
+            original: label.to_string(),
+            ..Self::new(sort_as)
+        }
+    }
+
     pub fn new(name: &str) -> Self {
         let name = name.strip_prefix("r#").unwrap_or(name);
         let mut pieces = Vec::new();
@@ -47,15 +56,6 @@ impl SortKey {
         Self {
             original: name.to_string(),
             pieces,
-        }
-    }
-
-    /// A key that sorts as `sort_as` but is displayed as `label`, for names
-    /// whose position is decided by something other than their spelling.
-    pub fn labelled(label: &str, sort_as: &str) -> Self {
-        Self {
-            original: label.to_string(),
-            ..Self::new(sort_as)
         }
     }
 
