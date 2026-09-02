@@ -8,7 +8,7 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit::Visit;
 
-use crate::ordering::{Rank, SourceList, first_disorder, sorted_order};
+use crate::ordering::{Rank, SortKey, SourceList, first_disorder, sorted_order};
 use crate::rule::Rule;
 use crate::rules::{Check, Context, Findings, type_ident};
 
@@ -421,7 +421,10 @@ impl DerivePins {
         if let Some(index) = self.last.iter().position(|pinned| pinned == name) {
             return Rank::new(2, &format!("{index:06}"));
         }
-        Rank::new(1, &supertrait_key(name))
+        Rank {
+            group: 1,
+            key: SortKey::new(&supertrait_key(name)).labelled(name),
+        }
     }
 }
 
