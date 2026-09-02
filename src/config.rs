@@ -55,6 +55,12 @@ pub struct GlobalState {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Naming {
+    /// Type-name suffixes that mark a wire shape (a request body, a database
+    /// row): primitives are expected there, parsing happens right after.
+    pub boundary_suffixes: Vec<String>,
+    /// Field names (or `_`-suffixes such as `_id`) that carry domain meaning
+    /// and deserve a type of their own.
+    pub domain_fields: Vec<String>,
     /// Module names that collect orphaned logic.
     pub orphan_modules: Vec<String>,
     /// Type-name suffixes that stand in for a decision nobody made.
@@ -131,6 +137,40 @@ impl Default for GlobalState {
 impl Default for Naming {
     fn default() -> Self {
         Self {
+            boundary_suffixes: [
+                "Body", "Dto", "Params", "Payload", "Query", "Record", "Request", "Response", "Row",
+            ]
+            .map(str::to_string)
+            .to_vec(),
+            domain_fields: [
+                "_at",
+                "_id",
+                "amount",
+                "currency",
+                "email",
+                "hash",
+                "iban",
+                "id",
+                "lat",
+                "latitude",
+                "lng",
+                "lon",
+                "longitude",
+                "password",
+                "percent",
+                "percentage",
+                "phone",
+                "price",
+                "secret",
+                "slug",
+                "timestamp",
+                "token",
+                "uri",
+                "url",
+                "zip",
+            ]
+            .map(str::to_string)
+            .to_vec(),
             orphan_modules: ["common", "helper", "helpers", "misc", "util", "utils"]
                 .map(str::to_string)
                 .to_vec(),

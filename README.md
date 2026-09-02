@@ -65,6 +65,7 @@ parameters are never sorted; calling convention is a real exception.
 | Rule | Principle |
 | --- | --- |
 | `primitive-soup` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): two parameters of the same primitive type can be swapped and still type-check. Wrap them. |
+| `primitive-field` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): `email: String`, `user_id: u64`, `latitude: f64`. The name promises a domain concept; the type accepts anything. Skipped for wire shapes (`*Request`, `*Row`, ...). |
 | `free-function` | [Method Ownership](https://almaju.github.io/blog/docs/fundamentals/modeling/method-ownership): a free function whose primary parameter or return type is one of your types belongs on that type. |
 | `vague-type-name` | [Method Ownership](https://almaju.github.io/blog/docs/fundamentals/modeling/method-ownership): `Service`, `Manager`, `Handler`, `Repository`... are names for decisions you have not made yet. |
 | `orphan-module` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): `utils`, `helpers`, `common` are where orphaned logic goes to die. |
@@ -134,6 +135,9 @@ too-many-parameters = 7
 vague-todo-min-words = 6
 
 [naming]
+boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record", "Request", "Response", "Row"]
+domain-fields = ["_at", "_id", "amount", "email", "latitude", "longitude", "password", "phone",
+                 "price", "token", "url", "..."]   # names or `_suffix`es that deserve a newtype
 orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
                   "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]

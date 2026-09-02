@@ -17,6 +17,7 @@ pub enum Rule {
     OrphanModule,
     OversizedImpl,
     PanicInProduction,
+    PrimitiveField,
     PrimitiveSoup,
     SortedDerives,
     SortedFields,
@@ -44,6 +45,7 @@ impl Rule {
             Rule::OrphanModule,
             Rule::OversizedImpl,
             Rule::PanicInProduction,
+            Rule::PrimitiveField,
             Rule::PrimitiveSoup,
             Rule::SortedDerives,
             Rule::SortedFields,
@@ -87,6 +89,9 @@ impl Rule {
             }
             Rule::PanicInProduction => {
                 "`unwrap`, `expect` and `panic!` outside tests and startup are bets that a call never fails."
+            }
+            Rule::PrimitiveField => {
+                "A field named like a domain concept but typed as a primitive accepts anything. Wrap it."
             }
             Rule::PrimitiveSoup => {
                 "Several parameters of the same primitive type can be swapped silently. Wrap them."
@@ -140,6 +145,7 @@ impl Rule {
             Rule::OrphanModule => "orphan-module",
             Rule::OversizedImpl => "oversized-impl",
             Rule::PanicInProduction => "panic-in-production",
+            Rule::PrimitiveField => "primitive-field",
             Rule::PrimitiveSoup => "primitive-soup",
             Rule::SortedDerives => "sorted-derives",
             Rule::SortedFields => "sorted-fields",
@@ -169,7 +175,7 @@ impl Rule {
                 "fundamentals/modeling/structs"
             }
             Rule::PanicInProduction | Rule::UntypedError => "fundamentals/modeling/errors",
-            Rule::PrimitiveSoup => "fundamentals/modeling/primitives",
+            Rule::PrimitiveField | Rule::PrimitiveSoup => "fundamentals/modeling/primitives",
             Rule::SortedDerives
             | Rule::SortedFields
             | Rule::SortedImplItems

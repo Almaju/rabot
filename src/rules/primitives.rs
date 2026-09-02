@@ -37,6 +37,44 @@ struct Visitor<'a> {
 }
 
 impl Visitor<'_> {
+    /// `email: String` in a domain struct: the name promises an email, the
+    /// type accepts anything.
+    fn check_fields(&mut self, item: &syn::ItemStruct) {
+        if self.test_depth > 0 || self.is_boundary(&item.ident.to_string()) {
+            return;
+        }
+        let syn::Fields::Named(fields) = &item.fields else {
+            return;
+        };
+        for field in &fields.named {
+            let Some(ident) = &field.ident else {
+                continue;
+            };
+            let name = ident.to_string();
+            let Some(primitive) = primitive_name(&field.ty) else {
+                continue;
+            };
+            if primitive.contains("bool") || primitive.contains("char") || !self.is_domain_field(&name) {
+                continue;
+            }
+            let suggestion = newtype_name(&name);
+            let inner = primitive.trim_start_matches("Option<").trim_end_matches('>');
+            self.findings.report_with_help(
+                self.cx,
+                Rule::PrimitiveField,
+                ident.span(),
+                format!(
+                    "`{name}: {primitive}` in `{}`: the name promises a {}, the type accepts anything",
+                    item.ident,
+                    name.trim_start_matches('_').replace('_', " ")
+                ),
+                Some(format!(
+                    "wrap it (`struct {suggestion}({inner});`) and validate once, in `{suggestion}::parse`, at the boundary"
+                )),
+            );
+        }
+    }
+
     fn check_signature(&mut self, sig: &syn::Signature) {
         if self.test_depth > 0 || self.in_trait_impl {
             return;
@@ -78,6 +116,26 @@ impl Visitor<'_> {
             );
         }
     }
+
+    fn is_boundary(&self, type_name: &str) -> bool {
+        self.cx
+            .config
+            .naming
+            .boundary_suffixes
+            .iter()
+            .any(|suffix| type_name.ends_with(suffix.as_str()) && type_name != suffix)
+    }
+
+    fn is_domain_field(&self, name: &str) -> bool {
+        let lowered = name.to_ascii_lowercase();
+        self.cx.config.naming.domain_fields.iter().any(|pattern| {
+            if let Some(suffix) = pattern.strip_prefix('_') {
+                lowered.ends_with(&format!("_{suffix}"))
+            } else {
+                lowered == *pattern || lowered.ends_with(&format!("_{pattern}"))
+            }
+        })
+    }
 }
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
@@ -110,9 +168,28 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         self.test_depth -= usize::from(is_test);
     }
 
+    fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
+        self.check_fields(node);
+    }
+
     fn visit_trait_item_fn(&mut self, node: &'ast syn::TraitItemFn) {
         self.check_signature(&node.sig);
     }
+}
+
+/// `user_id` becomes `UserId`, `created_at` becomes `CreatedAt`.
+fn newtype_name(field: &str) -> String {
+    field
+        .split('_')
+        .filter(|part| !part.is_empty())
+        .map(|part| {
+            let mut chars = part.chars();
+            match chars.next() {
+                Some(first) => first.to_ascii_uppercase().to_string() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect()
 }
 
 /// `&str`, `String`, `u64`, `Option<String>`... the name two swappable
@@ -154,6 +231,12 @@ mod tests {
 
     fn name(source: &str) -> Option<String> {
         primitive_name(&syn::parse_str(source).unwrap())
+    }
+
+    #[test]
+    fn builds_newtype_names() {
+        assert_eq!(newtype_name("user_id"), "UserId");
+        assert_eq!(newtype_name("email"), "Email");
     }
 
     #[test]
