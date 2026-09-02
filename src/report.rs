@@ -7,7 +7,7 @@ use crate::app::{Change, Outcome};
 use crate::diagnostic::{Diagnostic, Level};
 
 /// How findings reach the user.
-#[derive(clap::ValueEnum, Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum Format {
     /// One JSON array of diagnostics.
     Json,
@@ -17,7 +17,7 @@ pub enum Format {
 }
 
 /// How a piece of output is painted when the terminal supports colour.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Style {
     Bold,
     Error,

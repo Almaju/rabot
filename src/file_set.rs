@@ -36,7 +36,7 @@ pub struct FileSet {
 }
 
 /// Which files a run looks at.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Scope {
     /// Files git considers changed: modified, added or untracked relative to
     /// `since` (a ref), or relative to `HEAD` when `since` is `None`.

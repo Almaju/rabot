@@ -34,7 +34,19 @@ pub struct Config {
     pub naming: Naming,
     /// Per-rule level overrides. Rules not listed keep their default.
     pub rules: BTreeMap<Rule, Level>,
+    pub sorting: Sorting,
     pub thresholds: Thresholds,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
+pub struct Sorting {
+    /// Derives pinned to a position. Names before `...` come first in the
+    /// given order, names after it come last; everything else sits in
+    /// between, alphabetically, with each derive after the trait it extends
+    /// (`Eq` after `PartialEq`, `Ord` after `PartialOrd`, `Copy` after
+    /// `Clone`). Empty means: no pins, only that rule.
+    pub derive_order: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

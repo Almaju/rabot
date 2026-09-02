@@ -84,7 +84,7 @@ Every rule is one principle from one article. `fmt` fixes the first group;
 | `sorted-trait-items` | Trait definitions: consts, types, fns |
 | `sorted-struct-literal` | `User { .. }` initializers (fixed only when every initializer is plainly side-effect free) |
 | `sorted-struct-pattern` | `let User { .. } = ..` and `match` patterns |
-| `sorted-derives` | `#[derive(..)]` lists |
+| `sorted-derives` | `#[derive(..)]` lists: alphabetical, except that a derive follows the trait it extends (`PartialEq, Eq`, `PartialOrd, Ord`, `Clone, Copy`) |
 
 Order is case-insensitive and natural (`field2` before `field10`). Comments
 before a member move with it; whitespace stays where it was, so single-line
@@ -178,6 +178,12 @@ domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password", 
 orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
                   "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]
+
+[sorting]
+# Pin derives to a position, as in cargo-sort-derives: names before "..."
+# come first in this order, names after it come last, the rest stay
+# alphabetical (with a derive after the trait it extends) in between.
+derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
 
 [global-state]
 allowed-names = ["LOG"]        # substring match, case-insensitive

@@ -40,7 +40,7 @@ pub enum AppError {
 }
 
 /// What `rabot fmt` does with the files it would change.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FormatMode {
     /// Report the files that would change; touch nothing.
     Check,
@@ -49,7 +49,7 @@ pub enum FormatMode {
 }
 
 /// A file `fmt` rewrote, or would rewrite in check mode.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Change {
     pub after: String,
     pub before: String,

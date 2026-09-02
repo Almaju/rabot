@@ -3,7 +3,7 @@ use std::ops::Range;
 use thiserror::Error;
 
 /// Replace `text[start..end]` with `replacement`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Edit {
     pub end: usize,
     pub replacement: String,
