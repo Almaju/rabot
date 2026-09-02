@@ -76,6 +76,23 @@ fn every_rule_fires_where_expected() {
 }
 
 #[test]
+fn derive_messages_name_the_derive() {
+    let root = fixtures().join("lint");
+    let app = App::new(Config::default(), root.clone());
+    let outcome = app
+        .check(&Scope::Paths(vec![root.join("src")]))
+        .expect("check runs");
+    let messages: Vec<&str> = outcome
+        .diagnostics
+        .iter()
+        .filter(|d| d.rule == Rule::SortedDerives)
+        .map(|d| d.message.as_str())
+        .collect();
+    assert!(!messages.is_empty());
+    assert!(messages.iter().all(|m| !m.contains('\u{1}')), "{messages:?}");
+}
+
+#[test]
 fn documented_exceptions_are_honoured() {
     let findings = lint_findings();
     // `Severity` is allowed with a reason; `LOGGER` is infrastructure; the

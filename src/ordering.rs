@@ -50,6 +50,15 @@ impl SortKey {
         }
     }
 
+    /// A key that sorts as `sort_as` but is displayed as `label`, for names
+    /// whose position is decided by something other than their spelling.
+    pub fn labelled(label: &str, sort_as: &str) -> Self {
+        Self {
+            original: label.to_string(),
+            ..Self::new(sort_as)
+        }
+    }
+
     pub fn original(&self) -> &str {
         &self.original
     }
@@ -270,6 +279,13 @@ mod tests {
             key_order(&["b", "A", "a10", "a2", "r#type", "Zed"]),
             vec!["A", "a2", "a10", "b", "type", "Zed"]
         );
+    }
+
+    #[test]
+    fn labelled_keys_keep_their_name() {
+        let key = SortKey::labelled("Eq", "PartialEq\u{1}Eq");
+        assert_eq!(key.original(), "Eq");
+        assert!(SortKey::new("PartialEq") < key && key < SortKey::new("PartialOrd"));
     }
 
     #[test]
