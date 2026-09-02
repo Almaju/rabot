@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 use rabot::app::{App, FormatMode};
 use rabot::config::Config;
+use rabot::file_set::Scope;
 use rabot::rule::Rule;
 
 fn fixtures() -> PathBuf {
@@ -14,7 +15,9 @@ fn fixtures() -> PathBuf {
 fn lint_findings() -> Vec<(Rule, usize)> {
     let root = fixtures().join("lint");
     let app = App::new(Config::default(), root.clone());
-    let outcome = app.check(&[root.join("src")]).expect("check runs");
+    let outcome = app
+        .check(&Scope::Paths(vec![root.join("src")]))
+        .expect("check runs");
     outcome
         .diagnostics
         .iter()
@@ -99,7 +102,7 @@ fn fmt_matches_the_golden_file() {
 
     let app = App::new(Config::default(), dir.clone());
     let outcome = app
-        .format(std::slice::from_ref(&target), FormatMode::Write)
+        .format(&Scope::Paths(vec![target.clone()]), FormatMode::Write)
         .expect("fmt runs");
     assert_eq!(outcome.changed.len(), 1);
     assert_eq!(outcome.changed[0].path, target);
@@ -108,7 +111,7 @@ fn fmt_matches_the_golden_file() {
     assert_eq!(formatted, expected);
 
     let again = app
-        .format(std::slice::from_ref(&target), FormatMode::Check)
+        .format(&Scope::Paths(vec![target.clone()]), FormatMode::Check)
         .expect("second fmt runs");
     assert!(
         again.changed.is_empty(),
@@ -128,7 +131,7 @@ fn fmt_check_reports_without_writing() {
 
     let app = App::new(Config::default(), dir.clone());
     let outcome = app
-        .format(std::slice::from_ref(&target), FormatMode::Check)
+        .format(&Scope::Paths(vec![target.clone()]), FormatMode::Check)
         .expect("fmt runs");
     assert_eq!(outcome.changed.len(), 1);
     assert_eq!(outcome.changed[0].before, before);
@@ -140,5 +143,59 @@ fn fmt_check_reports_without_writing() {
             .all(|diagnostic| diagnostic.rule.fixable())
     );
     assert_eq!(std::fs::read_to_string(&target).expect("read"), before);
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn changed_scope_follows_git() {
+    let dir = std::env::temp_dir().join(format!("rabot-changed-{}", std::process::id()));
+    std::fs::create_dir_all(dir.join("src")).expect("temp dir");
+    let git = |args: &[&str]| {
+        let status = std::process::Command::new("git")
+            .arg("-C")
+            .arg(&dir)
+            .args(args)
+            .status()
+            .expect("git runs");
+        assert!(status.success(), "git {args:?}");
+    };
+    git(&["init", "-q"]);
+    git(&["config", "user.email", "t@example.com"]);
+    git(&["config", "user.name", "t"]);
+    std::fs::write(dir.join("src/committed.rs"), "pub struct A { b: u8, a: u8 }\n").expect("write");
+    git(&["add", "."]);
+    git(&["commit", "-q", "-m", "init"]);
+    std::fs::write(dir.join("src/fresh.rs"), "pub struct B { b: u8, a: u8 }\n").expect("write");
+
+    let app = App::new(Config::default(), dir.clone());
+    let uncommitted = app.check(&Scope::Changed { since: None }).expect("check runs");
+    let files: Vec<_> = uncommitted.diagnostics.iter().map(|d| d.path.clone()).collect();
+    assert_eq!(files, vec![dir.join("src/fresh.rs")]);
+
+    let since_root = app
+        .check(&Scope::Changed {
+            since: Some("HEAD".to_string()),
+        })
+        .expect("check runs");
+    assert_eq!(since_root.files_seen, 1);
+
+    let everything = app.check(&Scope::Paths(Vec::new())).expect("check runs");
+    assert_eq!(everything.files_seen, 2);
+
+    std::fs::create_dir_all(dir.join("generated/deep")).expect("dir");
+    std::fs::write(
+        dir.join("generated/deep/skip.rs"),
+        "pub struct C { b: u8, a: u8 }\n",
+    )
+    .expect("write");
+    let mut config = Config::default();
+    config.files.exclude.push("generated".to_string());
+    let excluded = App::new(config, dir.clone())
+        .check(&Scope::Changed { since: None })
+        .expect("check runs");
+    assert_eq!(
+        excluded.files_seen, 1,
+        "excludes apply to nested files under --changed"
+    );
     std::fs::remove_dir_all(&dir).ok();
 }
