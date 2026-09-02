@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use syn::visit::Visit;
 
 use crate::rule::Rule;
-use crate::rules::{Check, Context, Findings, has_cfg_test, has_test_attr, type_ident, unwrapped};
+use crate::rules::{Check, Context, Findings, type_ident, unwrapped};
 
 pub struct Structs;
 
@@ -19,7 +19,6 @@ impl Check for Structs {
             findings: Findings::default(),
             in_trait_impl: false,
             methods_per_type: BTreeMap::new(),
-            test_depth: usize::from(cx.in_test_file()),
         };
         visitor.visit_file(&cx.file.ast);
         visitor.report_oversized_impls();
@@ -34,14 +33,13 @@ struct Visitor<'a> {
     in_trait_impl: bool,
     /// Inherent methods per self type, with the span of the first impl block.
     methods_per_type: BTreeMap<String, (proc_macro2::Span, usize)>,
-    test_depth: usize,
 }
 
 impl Visitor<'_> {
     /// A free function whose primary parameter or return type is one of your
     /// own types has a home. It is not here.
     fn check_free_function(&mut self, node: &syn::ItemFn) {
-        if self.test_depth > 0 || node.sig.ident == "main" || node.sig.abi.is_some() {
+        if node.sig.ident == "main" || node.sig.abi.is_some() {
             return;
         }
         if node.attrs.iter().any(|attr| attr.path().is_ident("no_mangle")) {
@@ -152,18 +150,15 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     }
 
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
-        let is_test = has_test_attr(&node.attrs);
-        self.test_depth += usize::from(is_test);
         self.check_parameter_count(&node.sig);
         self.check_free_function(node);
         syn::visit::visit_item_fn(self, node);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
         let was = self.in_trait_impl;
         self.in_trait_impl = node.trait_.is_some();
-        if node.trait_.is_none() && self.test_depth == 0 {
+        if node.trait_.is_none() {
             let name = type_ident(&node.self_ty)
                 .map(ToString::to_string)
                 .unwrap_or_else(|| self.cx.file.text_of(&node.self_ty).to_string());
@@ -180,13 +175,6 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         }
         syn::visit::visit_item_impl(self, node);
         self.in_trait_impl = was;
-    }
-
-    fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {
-        let is_test = has_cfg_test(&node.attrs);
-        self.test_depth += usize::from(is_test);
-        syn::visit::visit_item_mod(self, node);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_trait_item_fn(&mut self, node: &'ast syn::TraitItemFn) {

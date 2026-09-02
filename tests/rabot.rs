@@ -37,7 +37,7 @@ fn every_rule_fires_where_expected() {
         (Rule::FreeFunction, 90),
         (Rule::FreeFunction, 100),
         (Rule::GlobalState, 7),
-        (Rule::MockUsage, 111),
+        (Rule::MockUsage, 126),
         (Rule::OrphanModule, 5),
         (Rule::PanicInProduction, 57),
         (Rule::PanicInProduction, 62),
@@ -93,7 +93,18 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 75)
+            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 108)
+    );
+    // Test-gated items relax the domain rules: `#[cfg(test)] fn test_helper` and
+    // `#[cfg(any(test, ..))] struct MockService` raise nothing.
+    let relaxed_region = 109..=122;
+    let in_region: Vec<_> = findings
+        .iter()
+        .filter(|(_, line)| relaxed_region.contains(line))
+        .collect();
+    assert!(
+        in_region.is_empty(),
+        "test-gated code should be silent: {in_region:?}"
     );
 }
 

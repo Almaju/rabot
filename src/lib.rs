@@ -18,3 +18,4 @@ pub mod rule;
 pub mod rules;
 pub mod rustfmt;
 pub mod source_file;
+pub mod test_regions;

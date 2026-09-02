@@ -134,6 +134,20 @@ with `--changed=<ref>`. `rabot hook` installs exactly that as a pre-commit
 hook; a PR job can run `rabot fmt --check --changed=origin/main`. The rest of
 the codebase is left alone until someone touches it.
 
+## Test code is different
+
+An `unwrap` in a test is the assertion. A `MockClock` under `#[cfg(test)]` is
+exactly the injectable the testing article asks for. So inside test code
+(`#[cfg(test)]` items, `#[cfg(any(test, ..))]`, `#[test]` functions, and
+files under `tests/`, `benches/` or `examples/`) the domain rules stay
+silent: `panic-in-production`, `untyped-error`, `primitive-soup`,
+`primitive-field`, `free-function`, `vague-type-name`, `orphan-module`,
+`oversized-impl`, `too-many-parameters`, `sectioned-function`.
+
+Sorting still applies, and so do the comment rules and `mock-usage`: a test
+file is still code. The list is `[tests] relax` in `rabot.toml`; set it to
+`[]` to hold tests to the full standard.
+
 ## Exceptions must be written down
 
 > You can break the rule. You must document the exception.
@@ -184,6 +198,10 @@ vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
 # come first in this order, names after it come last, the rest stay
 # alphabetical (with a derive after the trait it extends) in between.
 derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
+
+[tests]
+# Rules that stay silent in test code (see "Test code is different").
+relax = ["panic-in-production", "primitive-soup", "free-function", "..."]
 
 [global-state]
 allowed-names = ["LOG"]        # substring match, case-insensitive

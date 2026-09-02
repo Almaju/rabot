@@ -35,7 +35,11 @@ impl Context<'_> {
         if level == Level::Allow {
             return None;
         }
-        let position = self.file.position_of(span);
+        let offset = self.file.range(span).start;
+        if self.config.tests.relax.contains(&rule) && self.file.test_regions.contains(offset) {
+            return None;
+        }
+        let position = self.file.position(offset);
         if self.file.allowances.covers(rule, position.line) {
             return None;
         }
@@ -47,10 +51,6 @@ impl Context<'_> {
             position,
             rule,
         })
-    }
-
-    pub fn in_test_file(&self) -> bool {
-        self.file.is_test_file()
     }
 
     /// Every rule on this file, plus the problems with its allow comments.
@@ -177,26 +177,6 @@ impl<'ast> Visit<'ast> for LocalTypes {
     fn visit_item_union(&mut self, node: &'ast syn::ItemUnion) {
         self.insert(node.ident.to_string());
     }
-}
-
-/// `#[cfg(test)]`
-pub fn has_cfg_test(attrs: &[syn::Attribute]) -> bool {
-    attrs.iter().any(|attr| {
-        attr.path().is_ident("cfg")
-            && attr
-                .parse_args::<syn::Path>()
-                .is_ok_and(|path| path.is_ident("test"))
-    })
-}
-
-/// `#[test]`, `#[tokio::test]`, `#[rstest]`, `#[bench]`, ...
-pub fn has_test_attr(attrs: &[syn::Attribute]) -> bool {
-    attrs.iter().any(|attr| {
-        attr.path()
-            .segments
-            .last()
-            .is_some_and(|segment| matches!(segment.ident.to_string().as_str(), "test" | "bench" | "rstest"))
-    })
 }
 
 /// The identifier a type is known by: `Foo` for `Foo`, `&Foo`, `&mut Foo`,

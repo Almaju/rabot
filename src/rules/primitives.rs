@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use syn::visit::Visit;
 
 use crate::rule::Rule;
-use crate::rules::{Check, Context, Findings, has_cfg_test, has_test_attr};
+use crate::rules::{Check, Context, Findings};
 
 pub struct Primitives;
 
@@ -16,7 +16,6 @@ impl Check for Primitives {
             cx,
             findings: Findings::default(),
             in_trait_impl: false,
-            test_depth: usize::from(cx.in_test_file()),
         };
         visitor.visit_file(&cx.file.ast);
         visitor.findings
@@ -33,14 +32,13 @@ struct Visitor<'a> {
     findings: Findings,
     /// Inside `impl Trait for T`, where the signatures are the trait's choice.
     in_trait_impl: bool,
-    test_depth: usize,
 }
 
 impl Visitor<'_> {
     /// `email: String` in a domain struct: the name promises an email, the
     /// type accepts anything.
     fn check_fields(&mut self, item: &syn::ItemStruct) {
-        if self.test_depth > 0 || self.is_boundary(&item.ident.to_string()) {
+        if self.is_boundary(&item.ident.to_string()) {
             return;
         }
         let syn::Fields::Named(fields) = &item.fields else {
@@ -76,7 +74,7 @@ impl Visitor<'_> {
     }
 
     fn check_signature(&mut self, sig: &syn::Signature) {
-        if self.test_depth > 0 || self.in_trait_impl {
+        if self.in_trait_impl {
             return;
         }
         let mut by_type: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -140,18 +138,12 @@ impl Visitor<'_> {
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_impl_item_fn(&mut self, node: &'ast syn::ImplItemFn) {
-        let is_test = has_test_attr(&node.attrs);
-        self.test_depth += usize::from(is_test);
         self.check_signature(&node.sig);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
-        let is_test = has_test_attr(&node.attrs);
-        self.test_depth += usize::from(is_test);
         self.check_signature(&node.sig);
         syn::visit::visit_item_fn(self, node);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
@@ -159,13 +151,6 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         self.in_trait_impl = node.trait_.is_some();
         syn::visit::visit_item_impl(self, node);
         self.in_trait_impl = was;
-    }
-
-    fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {
-        let is_test = has_cfg_test(&node.attrs);
-        self.test_depth += usize::from(is_test);
-        syn::visit::visit_item_mod(self, node);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
