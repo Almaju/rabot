@@ -1,0 +1,5 @@
+# rabot's own configuration. Every rule at its default level: the tool has
+# to live by its own principles.
+
+[files]
+exclude = ["target", "tests/fixtures"]

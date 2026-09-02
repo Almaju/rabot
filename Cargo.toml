@@ -1,0 +1,20 @@
+[package]
+name = "rabot"
+version = "0.1.0"
+edition = "2024"
+description = "A linter and formatter that enforces the principles of https://almaju.github.io/blog/ on Rust code"
+license = "MIT"
+repository = "https://github.com/almaju/rabot"
+keywords = ["lint", "formatter", "style", "architecture"]
+categories = ["development-tools"]
+exclude = ["tests/fixtures/lint/Cargo.toml"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+ignore = "0.4"
+proc-macro2 = { version = "1", features = ["span-locations"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+syn = { version = "2", features = ["full", "extra-traits", "visit", "printing"] }
+thiserror = "2"
+toml = "0.8"
