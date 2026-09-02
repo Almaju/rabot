@@ -19,6 +19,7 @@ pub enum Rule {
     PanicInProduction,
     PrimitiveField,
     PrimitiveSoup,
+    SectionedFunction,
     SortedDerives,
     SortedFields,
     SortedImplItems,
@@ -47,6 +48,7 @@ impl Rule {
             Rule::PanicInProduction,
             Rule::PrimitiveField,
             Rule::PrimitiveSoup,
+            Rule::SectionedFunction,
             Rule::SortedDerives,
             Rule::SortedFields,
             Rule::SortedImplItems,
@@ -95,6 +97,9 @@ impl Rule {
             }
             Rule::PrimitiveSoup => {
                 "Several parameters of the same primitive type can be swapped silently. Wrap them."
+            }
+            Rule::SectionedFunction => {
+                "A function narrated by section comments is several functions; the headers are their names."
             }
             Rule::SortedDerives => "Derive lists are sorted alphabetically.",
             Rule::SortedFields => "Struct fields are sorted alphabetically.",
@@ -147,6 +152,7 @@ impl Rule {
             Rule::PanicInProduction => "panic-in-production",
             Rule::PrimitiveField => "primitive-field",
             Rule::PrimitiveSoup => "primitive-soup",
+            Rule::SectionedFunction => "sectioned-function",
             Rule::SortedDerives => "sorted-derives",
             Rule::SortedFields => "sorted-fields",
             Rule::SortedImplItems => "sorted-impl-items",
@@ -167,7 +173,9 @@ impl Rule {
     /// The article that states the principle behind this rule.
     pub fn reference(self) -> String {
         let page = match self {
-            Rule::CommentedOutCode | Rule::VagueTodo => "fundamentals/style/comments",
+            Rule::CommentedOutCode | Rule::SectionedFunction | Rule::VagueTodo => {
+                "fundamentals/style/comments"
+            }
             Rule::FreeFunction | Rule::VagueTypeName => "fundamentals/modeling/method-ownership",
             Rule::GlobalState => "fundamentals/architecture/dependencies",
             Rule::MockUsage => "fundamentals/architecture/testing",

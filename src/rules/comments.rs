@@ -1,6 +1,8 @@
 //! Delete the comment. Fix the code.
 //! <https://almaju.github.io/blog/docs/fundamentals/style/comments>
 
+use syn::visit::Visit;
+
 use crate::comment::Comment;
 use crate::diagnostic::Diagnostic;
 use crate::rule::Rule;
@@ -11,7 +13,8 @@ pub struct Comments;
 impl Check for Comments {
     fn run(&self, cx: &Context) -> Findings {
         let mut findings = Findings::default();
-        for block in CommentBlock::all(cx) {
+        let blocks = CommentBlock::all(cx);
+        for block in &blocks {
             if let Some(diagnostic) = block.commented_out_code(cx) {
                 findings.diagnostics.push(diagnostic);
             }
@@ -19,7 +22,13 @@ impl Check for Comments {
                 findings.diagnostics.push(diagnostic);
             }
         }
-        findings
+        let mut sections = Sections {
+            blocks: &blocks,
+            cx,
+            findings,
+        };
+        sections.visit_file(&cx.file.ast);
+        sections.findings
     }
 }
 
@@ -28,7 +37,78 @@ impl Check for Comments {
 struct CommentBlock {
     line: usize,
     start: usize,
+    /// True when nothing but whitespace precedes the comment on its line.
+    starts_line: bool,
     text: String,
+}
+
+impl CommentBlock {
+    /// A comment that introduces the code below it rather than trailing the
+    /// code beside it, and is not one of the two legitimate kinds (context
+    /// for the future, a ticket, a safety argument).
+    fn is_section_header(&self) -> bool {
+        let lowered = self.text.trim().to_ascii_lowercase();
+        self.starts_line
+            && !["todo", "fixme", "xxx", "hack", "safety", "rabot:", "see ", "http"]
+                .iter()
+                .any(|marker| lowered.contains(marker))
+    }
+}
+
+/// `// step 1: validate`, `// step 2: transform`, `// step 3: persist`: three
+/// functions trapped inside one, with an informal table of contents.
+struct Sections<'a> {
+    blocks: &'a [CommentBlock],
+    cx: &'a Context<'a>,
+    findings: Findings,
+}
+
+impl Sections<'_> {
+    fn check_body(&mut self, ident: &syn::Ident, block: &syn::Block) {
+        let range = self.cx.file.range_of(block);
+        let headers: Vec<&CommentBlock> = self
+            .blocks
+            .iter()
+            .filter(|comment| range.contains(&comment.start) && comment.is_section_header())
+            .collect();
+        let threshold = self.cx.config.thresholds.section_comments;
+        if headers.len() < threshold {
+            return;
+        }
+        let mut names: Vec<String> = headers
+            .iter()
+            .take(3)
+            .map(|header| {
+                let first_line = header.text.lines().next().unwrap_or_default().trim();
+                format!("`{}`", first_line.trim_end_matches(['.', ':']))
+            })
+            .collect();
+        if headers.len() > names.len() {
+            names.push("...".to_string());
+        }
+        self.findings.report_with_help(
+            self.cx,
+            Rule::SectionedFunction,
+            ident.span(),
+            format!(
+                "`{ident}` is narrated by {} section comments ({}): a table of contents for code that should have been split",
+                headers.len(),
+                names.join(", ")
+            ),
+            Some("extract each section into a function; the comment becomes its name and disappears".to_string()),
+        );
+    }
+}
+
+impl<'ast> Visit<'ast> for Sections<'_> {
+    fn visit_impl_item_fn(&mut self, node: &'ast syn::ImplItemFn) {
+        self.check_body(&node.sig.ident, &node.block);
+    }
+
+    fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
+        self.check_body(&node.sig.ident, &node.block);
+        syn::visit::visit_item_fn(self, node);
+    }
 }
 
 impl CommentBlock {
@@ -38,8 +118,16 @@ impl CommentBlock {
         let mut blocks: Vec<CommentBlock> = Vec::new();
         let mut previous: Option<&Comment> = None;
         for comment in cx.file.comments.iter().filter(|comment| !comment.is_doc()) {
+            let starts_line = cx.file.text[..comment.start]
+                .rsplit('\n')
+                .next()
+                .is_some_and(|prefix| prefix.trim().is_empty());
+            // A trailing comment and the leading comment on the next line are
+            // two different thoughts, not one block.
             let continues = comment.is_line()
+                && starts_line
                 && previous.is_some_and(|prev| prev.is_line() && prev.line + 1 == comment.line)
+                && blocks.last().is_some_and(|block| block.starts_line)
                 && !starts_marker(&comment.text);
             match (continues, blocks.last_mut()) {
                 (true, Some(block)) => {
@@ -49,6 +137,7 @@ impl CommentBlock {
                 _ => blocks.push(CommentBlock {
                     line: comment.line,
                     start: comment.start,
+                    starts_line,
                     text: comment.text.clone(),
                 }),
             }

@@ -74,6 +74,9 @@ pub struct Thresholds {
     pub oversized_impl: usize,
     /// Parameters of the same primitive type before a signature is soup.
     pub primitive_soup: usize,
+    /// Leading comments inside one function body before it reads as a
+    /// table of contents.
+    pub section_comments: usize,
     /// Parameters (excluding `self`) before a function has too many.
     pub too_many_parameters: usize,
     /// Words a TODO needs, unless it references a ticket or URL.
@@ -143,7 +146,6 @@ impl Default for Naming {
             .map(str::to_string)
             .to_vec(),
             domain_fields: [
-                "_at",
                 "_id",
                 "amount",
                 "currency",
@@ -198,6 +200,7 @@ impl Default for Thresholds {
         Self {
             oversized_impl: 20,
             primitive_soup: 2,
+            section_comments: 3,
             too_many_parameters: 7,
             vague_todo_min_words: 6,
         }

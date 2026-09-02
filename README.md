@@ -86,6 +86,7 @@ decision, not yours. They still apply to the trait definition itself.
 | `mock-usage` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `mockall`, `faux`, `mock!`, `#[automock]`. Mocks test your assumptions; build the in-memory implementation. |
 | `commented-out-code` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): a comment that parses as Rust is code somebody could not delete. You have git. |
 | `vague-todo` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): `// TODO: refactor this` says nothing. Say what, why, or link the ticket. |
+| `sectioned-function` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): `// step 1`, `// step 2`, `// step 3` inside one body is a table of contents for functions that have not been extracted. Three or more section comments fire it. |
 
 ## Migrate on contact
 
@@ -131,12 +132,13 @@ untyped-error = "error"
 [thresholds]
 oversized-impl = 20
 primitive-soup = 2
+section-comments = 3
 too-many-parameters = 7
 vague-todo-min-words = 6
 
 [naming]
 boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record", "Request", "Response", "Row"]
-domain-fields = ["_at", "_id", "amount", "email", "latitude", "longitude", "password", "phone",
+domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password", "phone",
                  "price", "token", "url", "..."]   # names or `_suffix`es that deserve a newtype
 orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
