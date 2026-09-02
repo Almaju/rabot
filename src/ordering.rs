@@ -18,49 +18,17 @@ enum Piece {
 }
 
 impl SortKey {
-    /// A key that sorts as `sort_as` but is displayed as `label`, for names
-    /// whose position is decided by something other than their spelling.
-    pub fn labelled(label: &str, sort_as: &str) -> Self {
-        Self {
-            original: label.to_string(),
-            ..Self::new(sort_as)
-        }
-    }
-
-    pub fn new(name: &str) -> Self {
-        let name = name.strip_prefix("r#").unwrap_or(name);
-        let mut pieces = Vec::new();
-        let mut digits = String::new();
-        let mut text = String::new();
-        for c in name.chars() {
-            if c.is_ascii_digit() {
-                if !text.is_empty() {
-                    pieces.push(Piece::Text(std::mem::take(&mut text)));
-                }
-                digits.push(c);
-            } else {
-                if !digits.is_empty() {
-                    pieces.push(Piece::Number(
-                        std::mem::take(&mut digits).parse().unwrap_or(u128::MAX),
-                    ));
-                }
-                text.extend(c.to_lowercase());
-            }
-        }
-        if !text.is_empty() {
-            pieces.push(Piece::Text(text));
-        }
-        if !digits.is_empty() {
-            pieces.push(Piece::Number(digits.parse().unwrap_or(u128::MAX)));
-        }
-        Self {
-            original: name.to_string(),
-            pieces,
-        }
-    }
-
     pub fn original(&self) -> &str {
         &self.original
+    }
+
+    /// The same ordering, displayed under another name: for members whose
+    /// position is decided by something other than their spelling.
+    pub fn labelled(self, label: &str) -> Self {
+        Self {
+            original: label.to_string(),
+            ..self
+        }
     }
 }
 
@@ -283,7 +251,7 @@ mod tests {
 
     #[test]
     fn labelled_keys_keep_their_name() {
-        let key = SortKey::labelled("Eq", "PartialEq\u{1}Eq");
+        let key = SortKey::new("PartialEq\u{1}Eq").labelled("Eq");
         assert_eq!(key.original(), "Eq");
         assert!(SortKey::new("PartialEq") < key && key < SortKey::new("PartialOrd"));
     }

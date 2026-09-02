@@ -423,7 +423,7 @@ impl DerivePins {
         }
         Rank {
             group: 1,
-            key: SortKey::labelled(name, &supertrait_key(name)),
+            key: SortKey::new(&supertrait_key(name)).labelled(name),
         }
     }
 }
