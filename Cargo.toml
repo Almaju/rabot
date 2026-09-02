@@ -2,6 +2,7 @@
 name = "rabot"
 version = "0.1.0"
 edition = "2024"
+default-run = "rabot"
 description = "A linter and formatter that enforces the principles of https://almaju.github.io/blog/ on Rust code"
 license = "MIT"
 repository = "https://github.com/almaju/rabot"
