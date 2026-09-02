@@ -36,6 +36,7 @@ pub struct Layout {
     a: u8,
 }
 
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Store {
     users: Vec<User>,
 }

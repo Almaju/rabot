@@ -1,5 +1,5 @@
 /// What kind of comment the scanner found.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CommentKind {
     Block,
     Doc,
@@ -7,7 +7,7 @@ pub enum CommentKind {
 }
 
 /// One comment in a source text, with its inner text and location.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Comment {
     /// Byte offset one past the last character of the comment.
     pub end: usize,

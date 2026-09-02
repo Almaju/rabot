@@ -5,13 +5,13 @@ use crate::edit::Edit;
 
 /// The key rabot sorts identifiers by: case-insensitive, with digit runs
 /// compared numerically so that `field2` comes before `field10`.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SortKey {
     original: String,
     pieces: Vec<Piece>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum Piece {
     Number(u128),
     Text(String),
@@ -82,7 +82,7 @@ impl PartialOrd for SortKey {
 }
 
 /// One entry of a [`SourceList`]: a group rank first, then the name.
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rank {
     pub group: u8,
     pub key: SortKey,

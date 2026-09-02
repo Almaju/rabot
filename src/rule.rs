@@ -7,7 +7,7 @@ use crate::diagnostic::Level;
 const BLOG: &str = "https://almaju.github.io/blog/docs";
 
 /// Every check rabot knows about. One rule, one principle, one article.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Rule {
     CommentedOutCode,

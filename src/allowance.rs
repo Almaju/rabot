@@ -9,7 +9,7 @@ const PREFIX: &str = "rabot:";
 ///
 /// The reason is mandatory. An exception that lives only in someone's head is
 /// not an exception; it is chaos with better intentions.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Allowance {
     pub file_wide: bool,
     pub line: usize,
@@ -20,7 +20,7 @@ pub struct Allowance {
 }
 
 /// A malformed allow comment.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Problem {
     pub line: usize,
     pub message: String,
@@ -29,7 +29,7 @@ pub struct Problem {
 
 /// A region of source that an allowance can attach to: an item, a field, a
 /// method.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Scope {
     pub end_line: usize,
     pub start_line: usize,

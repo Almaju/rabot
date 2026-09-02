@@ -33,6 +33,13 @@ const IMPL_GROUPS: [&str; 5] = [
     "private fns",
 ];
 const TRAIT_GROUPS: [&str; 3] = ["associated consts", "associated types", "fns"];
+const DERIVE_GROUPS: [&str; 3] = [
+    "derives pinned first by `derive-order`",
+    "unpinned derives",
+    "derives pinned last by `derive-order`",
+];
+const ALPHABETICAL: &str = "alphabetical order";
+const DERIVE_ALPHABETICAL: &str = "alphabetical order, with a derive after the trait it extends";
 
 struct Sorter<'a> {
     cx: &'a Context<'a>,
@@ -50,6 +57,8 @@ struct Candidate {
     members: Vec<(Rank, Range<usize>)>,
     /// Offset just past the opening delimiter.
     open: usize,
+    /// How members within one group are ordered, for the message.
+    order_note: &'static str,
     separator: Option<char>,
     /// Where the diagnostic points.
     span: Span,
@@ -68,7 +77,7 @@ impl Sorter<'_> {
         };
         let (first, second) = (&ranks[before], &ranks[after]);
         let why = if first.group == second.group {
-            "alphabetical order".to_string()
+            candidate.order_note.to_string()
         } else {
             format!(
                 "{} come before {}",
@@ -116,11 +125,17 @@ impl Sorter<'_> {
         else {
             return;
         };
+        let pins = DerivePins::new(&self.cx.config.sorting.derive_order);
         let members = paths
             .iter()
             .map(|path| {
                 let range = self.cx.file.range_of(path);
-                (Rank::new(0, &self.cx.file.text[range.clone()]), range)
+                let name = path
+                    .segments
+                    .last()
+                    .map(|segment| segment.ident.to_string())
+                    .unwrap_or_default();
+                (pins.rank(&name), range)
             })
             .collect();
         self.check(
@@ -128,9 +143,10 @@ impl Sorter<'_> {
             Candidate {
                 close: self.cx.file.range(paren.span.close()).start,
                 fixable: true,
-                groups: &IMPL_GROUPS,
+                groups: &DERIVE_GROUPS,
                 members,
                 open: self.cx.file.range(paren.span.open()).end,
+                order_note: DERIVE_ALPHABETICAL,
                 separator: Some(','),
                 span: attr.span(),
                 subject: "derive list".to_string(),
@@ -156,6 +172,7 @@ impl Sorter<'_> {
                 groups: &IMPL_GROUPS,
                 members,
                 open: self.cx.file.range(brace.open()).end,
+                order_note: ALPHABETICAL,
                 separator: Some(','),
                 span,
                 subject,
@@ -195,6 +212,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                 groups: &IMPL_GROUPS,
                 members,
                 open: self.cx.file.range(brace.open()).end,
+                order_note: ALPHABETICAL,
                 separator: Some(','),
                 span: node.path.span(),
                 subject: format!("fields of `{name} {{ .. }}`"),
@@ -230,6 +248,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     groups: &IMPL_GROUPS,
                     members,
                     open: self.cx.file.range(brace.open()).end,
+                    order_note: ALPHABETICAL,
                     separator: Some(','),
                     span: node.ident.span(),
                     subject: format!("variants of `{}`", node.ident),
@@ -291,6 +310,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     },
                     members,
                     open: self.cx.file.range(brace.open()).end,
+                    order_note: ALPHABETICAL,
                     separator: None,
                     span: node.impl_token.span(),
                     subject,
@@ -335,6 +355,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     groups: &TRAIT_GROUPS,
                     members,
                     open: self.cx.file.range(brace.open()).end,
+                    order_note: ALPHABETICAL,
                     separator: None,
                     span: node.ident.span(),
                     subject: format!("`trait {}`", node.ident),
@@ -366,12 +387,54 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                 groups: &IMPL_GROUPS,
                 members,
                 open: self.cx.file.range(brace.open()).end,
+                order_note: ALPHABETICAL,
                 separator: Some(','),
                 span: node.path.span(),
                 subject: format!("fields of pattern `{name} {{ .. }}`"),
             },
         );
         syn::visit::visit_pat_struct(self, node);
+    }
+}
+
+/// The `derive-order` setting: names pinned first, names pinned last, and
+/// the supertrait rule for everything in between.
+struct DerivePins {
+    first: Vec<String>,
+    last: Vec<String>,
+}
+
+impl DerivePins {
+    fn new(order: &[String]) -> Self {
+        let ellipsis = order.iter().position(|name| name == "...");
+        let (first, last) = match ellipsis {
+            Some(index) => (order[..index].to_vec(), order[index + 1..].to_vec()),
+            None => (order.to_vec(), Vec::new()),
+        };
+        Self { first, last }
+    }
+
+    fn rank(&self, name: &str) -> Rank {
+        if let Some(index) = self.first.iter().position(|pinned| pinned == name) {
+            return Rank::new(0, &format!("{index:06}"));
+        }
+        if let Some(index) = self.last.iter().position(|pinned| pinned == name) {
+            return Rank::new(2, &format!("{index:06}"));
+        }
+        Rank::new(1, &supertrait_key(name))
+    }
+}
+
+/// Alphabetical, except that a derive sorts right after the trait it
+/// extends: `Eq` after `PartialEq`, `Ord` after `PartialOrd`, `Copy` after
+/// `Clone`. The key of `Eq` is "PartialEq" plus a suffix that sorts before
+/// any other continuation, so it lands immediately after `PartialEq`.
+fn supertrait_key(name: &str) -> String {
+    match name {
+        "Copy" => "Clone\u{1}Copy".to_string(),
+        "Eq" => "PartialEq\u{1}Eq".to_string(),
+        "Ord" => "PartialOrd\u{1}Ord".to_string(),
+        other => other.to_string(),
     }
 }
 
@@ -459,5 +522,65 @@ fn is_pure(expr: &syn::Expr) -> bool {
             }
         }
         _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ordering::sorted_order;
+
+    fn order(pins: &[&str], derives: &[&str]) -> Vec<String> {
+        let pins = DerivePins::new(&pins.iter().map(|p| p.to_string()).collect::<Vec<_>>());
+        let ranks: Vec<Rank> = derives.iter().map(|name| pins.rank(name)).collect();
+        let order = sorted_order(&ranks).unwrap_or_else(|| (0..derives.len()).collect());
+        order
+            .into_iter()
+            .map(|index| derives[index].to_string())
+            .collect()
+    }
+
+    #[test]
+    fn a_derive_follows_the_trait_it_extends() {
+        assert_eq!(
+            order(
+                &[],
+                &[
+                    "Ord",
+                    "Eq",
+                    "PartialOrd",
+                    "Hash",
+                    "PartialEq",
+                    "Debug",
+                    "Copy",
+                    "Clone"
+                ]
+            ),
+            vec![
+                "Clone",
+                "Copy",
+                "Debug",
+                "Hash",
+                "PartialEq",
+                "Eq",
+                "PartialOrd",
+                "Ord"
+            ]
+        );
+    }
+
+    #[test]
+    fn pins_go_first_then_last_with_the_rest_in_between() {
+        assert_eq!(
+            order(
+                &["Debug", "...", "Serialize"],
+                &["Serialize", "Eq", "Debug", "Clone", "PartialEq"]
+            ),
+            vec!["Debug", "Clone", "PartialEq", "Eq", "Serialize"]
+        );
+        assert_eq!(
+            order(&["Serialize", "Deserialize"], &["Deserialize", "Serialize"]),
+            vec!["Serialize", "Deserialize"]
+        );
     }
 }

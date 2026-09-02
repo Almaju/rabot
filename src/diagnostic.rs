@@ -9,7 +9,7 @@ use crate::rule::Rule;
 ///
 /// Variant order is semantic (`Allow < Warn < Error`) so it can be compared.
 // rabot: allow(sorted-variants) ordering is semantic and used for comparisons
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Level {
     Allow,
@@ -28,14 +28,14 @@ impl fmt::Display for Level {
 }
 
 /// A 1-based line and column in a source file.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Position {
     pub column: usize,
     pub line: usize,
 }
 
 /// One finding, ready to be shown to a human or a machine.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Diagnostic {
     pub help: Option<String>,
     pub level: Level,
