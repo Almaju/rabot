@@ -5,7 +5,7 @@ use syn::spanned::Spanned;
 use syn::visit::Visit;
 
 use crate::rule::Rule;
-use crate::rules::{Check, Context, Findings, has_cfg_test};
+use crate::rules::{Check, Context, Findings};
 
 pub struct Dependencies;
 
@@ -14,7 +14,6 @@ impl Check for Dependencies {
         let mut visitor = Visitor {
             cx,
             findings: Findings::default(),
-            test_depth: usize::from(cx.in_test_file()),
         };
         visitor.visit_file(&cx.file.ast);
         visitor.findings
@@ -37,7 +36,6 @@ const INTERIOR_MUTABILITY: [&str; 10] = [
 struct Visitor<'a> {
     cx: &'a Context<'a>,
     findings: Findings,
-    test_depth: usize,
 }
 
 impl Visitor<'_> {
@@ -54,9 +52,6 @@ impl Visitor<'_> {
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_item_macro(&mut self, node: &'ast syn::ItemMacro) {
-        if self.test_depth > 0 {
-            return;
-        }
         let is_lazy_static = node
             .mac
             .path
@@ -68,22 +63,13 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
                 self.cx,
                 Rule::GlobalState,
                 node.span(),
-                "`lazy_static!` creates global state; dependencies belong in the type signature, wired once in `main`".to_string(),
+                "`lazy_static!` creates global state; dependencies belong in the type signature, wired once in `main`"
+                    .to_string(),
             );
         }
     }
 
-    fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {
-        let is_test = has_cfg_test(&node.attrs);
-        self.test_depth += usize::from(is_test);
-        syn::visit::visit_item_mod(self, node);
-        self.test_depth -= usize::from(is_test);
-    }
-
     fn visit_item_static(&mut self, node: &'ast syn::ItemStatic) {
-        if self.test_depth > 0 {
-            return;
-        }
         let name = node.ident.to_string();
         if self.is_infrastructure(&name) {
             return;

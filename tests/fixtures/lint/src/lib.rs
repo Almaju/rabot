@@ -107,6 +107,21 @@ fn process(order: &mut User) {
 }
 
 #[cfg(test)]
+fn test_helper(user_id: String, email: String) -> User {
+    // arrange
+    let x: Option<u8> = None;
+    // act
+    x.unwrap();
+    // assert
+    todo!()
+}
+
+#[cfg(any(test, feature = "test-utils"))]
+pub struct MockService {
+    email: String,
+}
+
+#[cfg(test)]
 mod tests {
     use mockall::automock;
 

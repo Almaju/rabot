@@ -35,7 +35,18 @@ pub struct Config {
     /// Per-rule level overrides. Rules not listed keep their default.
     pub rules: BTreeMap<Rule, Level>,
     pub sorting: Sorting,
+    pub tests: Tests,
     pub thresholds: Thresholds,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
+pub struct Tests {
+    /// Rules that stay silent in test code: `#[cfg(test)]` items, `#[test]`
+    /// functions, and files under `tests/`, `benches/` or `examples/`.
+    /// Sorting rules and the comment rules are not relaxed by default: a
+    /// test file is still code.
+    pub relax: Vec<Rule>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
@@ -203,6 +214,26 @@ impl Default for Naming {
             ]
             .map(str::to_string)
             .to_vec(),
+        }
+    }
+}
+
+impl Default for Tests {
+    fn default() -> Self {
+        Self {
+            relax: vec![
+                Rule::FreeFunction,
+                Rule::GlobalState,
+                Rule::OrphanModule,
+                Rule::OversizedImpl,
+                Rule::PanicInProduction,
+                Rule::PrimitiveField,
+                Rule::PrimitiveSoup,
+                Rule::SectionedFunction,
+                Rule::TooManyParameters,
+                Rule::UntypedError,
+                Rule::VagueTypeName,
+            ],
         }
     }
 }

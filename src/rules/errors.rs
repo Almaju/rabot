@@ -5,7 +5,7 @@ use syn::spanned::Spanned;
 use syn::visit::Visit;
 
 use crate::rule::Rule;
-use crate::rules::{Check, Context, Findings, has_cfg_test, has_test_attr};
+use crate::rules::{Check, Context, Findings};
 
 pub struct Errors;
 
@@ -16,7 +16,6 @@ impl Check for Errors {
             findings: Findings::default(),
             in_trait_impl: false,
             startup_depth: 0,
-            test_depth: usize::from(cx.in_test_file()),
         };
         visitor.visit_file(&cx.file.ast);
         visitor.findings
@@ -30,12 +29,11 @@ struct Visitor<'a> {
     in_trait_impl: bool,
     /// Inside `fn main`, where a missing config file may legitimately abort.
     startup_depth: usize,
-    test_depth: usize,
 }
 
 impl Visitor<'_> {
     fn check_signature(&mut self, sig: &syn::Signature) {
-        if self.in_trait_impl {
+        if self.in_trait_impl || self.startup_depth > 0 {
             return;
         }
         let syn::ReturnType::Type(_, ty) = &sig.output else {
@@ -65,15 +63,11 @@ impl Visitor<'_> {
             Some("return an enum of the failures a caller can react to differently".to_string()),
         );
     }
-
-    fn exempt(&self) -> bool {
-        self.test_depth > 0 || self.startup_depth > 0
-    }
 }
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
-        if !self.exempt() {
+        if self.startup_depth == 0 {
             let method = node.method.to_string();
             if matches!(method.as_str(), "unwrap" | "expect" | "unwrap_err" | "expect_err") {
                 self.findings.report_with_help(
@@ -81,7 +75,10 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
                     Rule::PanicInProduction,
                     node.method.span(),
                     format!("`.{method}()` in production code is a bet that this call never fails"),
-                    Some("propagate with `?` or match on the failure; panics are for startup and programmer errors".to_string()),
+                    Some(
+                        "propagate with `?` or match on the failure; panics are for startup and programmer errors"
+                            .to_string(),
+                    ),
                 );
             }
         }
@@ -89,26 +86,16 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     }
 
     fn visit_impl_item_fn(&mut self, node: &'ast syn::ImplItemFn) {
-        let is_test = has_test_attr(&node.attrs);
-        self.test_depth += usize::from(is_test);
-        if !self.exempt() {
-            self.check_signature(&node.sig);
-        }
+        self.check_signature(&node.sig);
         syn::visit::visit_impl_item_fn(self, node);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
-        let is_test = has_test_attr(&node.attrs);
         let is_main = node.sig.ident == "main";
-        self.test_depth += usize::from(is_test);
         self.startup_depth += usize::from(is_main);
-        if !self.exempt() {
-            self.check_signature(&node.sig);
-        }
+        self.check_signature(&node.sig);
         syn::visit::visit_item_fn(self, node);
         self.startup_depth -= usize::from(is_main);
-        self.test_depth -= usize::from(is_test);
     }
 
     fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
@@ -118,15 +105,8 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         self.in_trait_impl = was;
     }
 
-    fn visit_item_mod(&mut self, node: &'ast syn::ItemMod) {
-        let is_test = has_cfg_test(&node.attrs);
-        self.test_depth += usize::from(is_test);
-        syn::visit::visit_item_mod(self, node);
-        self.test_depth -= usize::from(is_test);
-    }
-
     fn visit_macro(&mut self, node: &'ast syn::Macro) {
-        if self.exempt() {
+        if self.startup_depth > 0 {
             return;
         }
         let Some(name) = node.path.segments.last().map(|segment| segment.ident.to_string()) else {
@@ -151,9 +131,7 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     }
 
     fn visit_trait_item_fn(&mut self, node: &'ast syn::TraitItemFn) {
-        if !self.exempt() {
-            self.check_signature(&node.sig);
-        }
+        self.check_signature(&node.sig);
         syn::visit::visit_trait_item_fn(self, node);
     }
 }

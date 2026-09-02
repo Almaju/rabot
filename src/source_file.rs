@@ -9,6 +9,7 @@ use thiserror::Error;
 use crate::allowance::{Allowances, Scope};
 use crate::comment::Comments;
 use crate::diagnostic::Position;
+use crate::test_regions::TestRegions;
 
 #[derive(Debug, Error)]
 #[error("{path}:{line}:{column}: {message}")]
@@ -31,6 +32,8 @@ pub struct SourceFile {
     /// text its spans are relative to.
     offset: usize,
     pub path: PathBuf,
+    /// Where the file's test code lives.
+    pub test_regions: TestRegions,
     pub text: String,
 }
 
@@ -56,11 +59,13 @@ impl SourceFile {
             line_starts: line_starts(&text),
             offset,
             path,
+            test_regions: TestRegions::default(),
             text,
         };
         let lines: Vec<&str> = file.text.lines().collect();
         allowances.attach(&file.scopes(), &lines);
         file.allowances = allowances;
+        file.test_regions = TestRegions::collect(&file.ast, file.is_test_file(), |span| file.range(span));
         Ok(file)
     }
 
