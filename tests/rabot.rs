@@ -30,33 +30,35 @@ fn lint_findings() -> Vec<(Rule, usize)> {
 fn every_rule_fires_where_expected() {
     let findings = lint_findings();
     let expected = [
-        (Rule::CommentedOutCode, 51),
-        (Rule::FreeFunction, 58),
-        (Rule::FreeFunction, 60),
-        (Rule::FreeFunction, 64),
-        (Rule::FreeFunction, 83),
+        (Rule::CommentedOutCode, 58),
+        (Rule::FreeFunction, 65),
+        (Rule::FreeFunction, 67),
+        (Rule::FreeFunction, 71),
+        (Rule::FreeFunction, 90),
         (Rule::GlobalState, 7),
-        (Rule::MockUsage, 95),
+        (Rule::MockUsage, 102),
         (Rule::OrphanModule, 5),
-        (Rule::PanicInProduction, 50),
-        (Rule::PanicInProduction, 55),
-        (Rule::PanicInProduction, 61),
-        (Rule::PrimitiveSoup, 49),
+        (Rule::PanicInProduction, 57),
+        (Rule::PanicInProduction, 62),
+        (Rule::PanicInProduction, 68),
+        (Rule::PrimitiveField, 12),
+        (Rule::PrimitiveField, 13),
+        (Rule::PrimitiveSoup, 56),
         (Rule::SortedDerives, 10),
         (Rule::SortedFields, 11),
-        (Rule::SortedFields, 19),
-        (Rule::SortedFields, 29),
-        (Rule::SortedImplItems, 39),
-        (Rule::SortedStructLiteral, 65),
-        (Rule::SortedStructPattern, 84),
-        (Rule::SortedTraitItems, 74),
-        (Rule::SortedVariants, 16),
-        (Rule::TooManyParameters, 72),
-        (Rule::UndocumentedException, 28),
-        (Rule::UnknownRule, 34),
-        (Rule::UntypedError, 68),
-        (Rule::VagueTodo, 53),
-        (Rule::VagueTypeName, 35),
+        (Rule::SortedFields, 26),
+        (Rule::SortedFields, 36),
+        (Rule::SortedImplItems, 46),
+        (Rule::SortedStructLiteral, 72),
+        (Rule::SortedStructPattern, 91),
+        (Rule::SortedTraitItems, 81),
+        (Rule::SortedVariants, 23),
+        (Rule::TooManyParameters, 79),
+        (Rule::UndocumentedException, 35),
+        (Rule::UnknownRule, 41),
+        (Rule::UntypedError, 75),
+        (Rule::VagueTodo, 60),
+        (Rule::VagueTypeName, 42),
     ];
     for expectation in &expected {
         assert!(
@@ -79,7 +81,7 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 23)
+            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 30)
     );
     assert!(
         !findings

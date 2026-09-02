@@ -13,6 +13,13 @@ pub struct User {
     email: String,
 }
 
+pub struct CreateUserRequest {
+    email: String,
+    user_id: String,
+}
+
+pub struct Email(String);
+
 pub enum UserRole {
     Member,
     Admin,
