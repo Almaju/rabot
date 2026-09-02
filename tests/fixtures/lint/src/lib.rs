@@ -97,6 +97,15 @@ impl serde::Serializer for User {
     }
 }
 
+fn process(order: &mut User) {
+    // step 1: validate
+    let valid = true;
+    // step 2: transform
+    let transformed = valid; // trailing comments do not count
+    // step 3: persist
+    let _ = transformed;
+}
+
 #[cfg(test)]
 mod tests {
     use mockall::automock;
