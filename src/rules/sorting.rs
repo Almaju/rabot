@@ -343,6 +343,36 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
         }
         syn::visit::visit_item_trait(self, node);
     }
+
+    fn visit_pat_struct(&mut self, node: &'ast syn::PatStruct) {
+        let mut members = Vec::new();
+        for field in &node.fields {
+            let syn::Member::Named(ident) = &field.member else {
+                return syn::visit::visit_pat_struct(self, node);
+            };
+            members.push((Rank::new(0, &ident.to_string()), self.cx.file.range_of(field)));
+        }
+        let brace = node.brace_token.span;
+        let close = match &node.rest {
+            Some(rest) => self.cx.file.range_of(rest).start,
+            None => self.cx.file.range(brace.close()).start,
+        };
+        let name = self.cx.file.text_of(&node.path).to_string();
+        self.check(
+            Rule::SortedStructPattern,
+            Candidate {
+                close,
+                fixable: true,
+                groups: &IMPL_GROUPS,
+                members,
+                open: self.cx.file.range(brace.open()).end,
+                separator: Some(','),
+                span: node.path.span(),
+                subject: format!("fields of pattern `{name} {{ .. }}`"),
+            },
+        );
+        syn::visit::visit_pat_struct(self, node);
+    }
 }
 
 /// Deriving `PartialOrd` or `Ord` makes variant order part of the semantics.

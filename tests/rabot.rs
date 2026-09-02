@@ -31,8 +31,9 @@ fn every_rule_fires_where_expected() {
         (Rule::FreeFunction, 58),
         (Rule::FreeFunction, 60),
         (Rule::FreeFunction, 64),
+        (Rule::FreeFunction, 83),
         (Rule::GlobalState, 7),
-        (Rule::MockUsage, 85),
+        (Rule::MockUsage, 95),
         (Rule::OrphanModule, 5),
         (Rule::PanicInProduction, 50),
         (Rule::PanicInProduction, 55),
@@ -44,6 +45,7 @@ fn every_rule_fires_where_expected() {
         (Rule::SortedFields, 29),
         (Rule::SortedImplItems, 39),
         (Rule::SortedStructLiteral, 65),
+        (Rule::SortedStructPattern, 84),
         (Rule::SortedTraitItems, 74),
         (Rule::SortedVariants, 16),
         (Rule::TooManyParameters, 72),
@@ -99,7 +101,8 @@ fn fmt_matches_the_golden_file() {
     let outcome = app
         .format(std::slice::from_ref(&target), FormatMode::Write)
         .expect("fmt runs");
-    assert_eq!(outcome.changed, vec![target.clone()]);
+    assert_eq!(outcome.changed.len(), 1);
+    assert_eq!(outcome.changed[0].path, target);
     let formatted = std::fs::read_to_string(&target).expect("read result");
     let expected = std::fs::read_to_string(fixtures().join("fmt/after.rs")).expect("read golden");
     assert_eq!(formatted, expected);
@@ -127,7 +130,9 @@ fn fmt_check_reports_without_writing() {
     let outcome = app
         .format(std::slice::from_ref(&target), FormatMode::Check)
         .expect("fmt runs");
-    assert_eq!(outcome.changed, vec![target.clone()]);
+    assert_eq!(outcome.changed.len(), 1);
+    assert_eq!(outcome.changed[0].before, before);
+    assert_ne!(outcome.changed[0].after, before);
     assert!(
         outcome
             .diagnostics

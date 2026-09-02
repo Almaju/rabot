@@ -22,6 +22,7 @@ rabot check            # lint the current directory, write nothing
 rabot check --strict   # warnings fail the build too
 rabot fmt              # sort fields, variants, impl items, derives, struct literals
 rabot fmt --check      # exit 1 if any file would change
+rabot fmt --diff       # show what fmt would change, as a unified diff
 rabot rules            # every rule, its default level, the article behind it
 rabot init             # write a rabot.toml with every rule listed
 ```
@@ -45,11 +46,13 @@ Every rule is one principle from one article. `fmt` fixes the first group;
 | `sorted-impl-items` | Inherent impls: consts, types, constructors, `pub` fns, private fns, each alphabetical. Trait impls: consts, types, fns |
 | `sorted-trait-items` | Trait definitions: consts, types, fns |
 | `sorted-struct-literal` | `User { .. }` initializers (fixed only when every initializer is plainly side-effect free) |
+| `sorted-struct-pattern` | `let User { .. } = ..` and `match` patterns |
 | `sorted-derives` | `#[derive(..)]` lists |
 
 Order is case-insensitive and natural (`field2` before `field10`). Comments
 before a member move with it; whitespace stays where it was, so single-line
-lists stay single-line.
+lists stay single-line. `fmt` has been run over `clap_builder`, `toml` and
+`ignore`; all three still compile afterwards.
 
 rabot leaves alone lists whose order is semantic: `#[repr]` types, enums with
 explicit discriminants, and enums that derive `PartialOrd` or `Ord`. Function
@@ -67,6 +70,10 @@ parameters are never sorted; calling convention is a real exception.
 | `too-many-parameters` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): parameters that travel together are a struct waiting to be named. |
 | `panic-in-production` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `unwrap`, `expect`, `panic!`, `todo!` outside tests and `main` are bets that a call never fails. |
 | `untyped-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `Box<dyn Error>` and `anyhow` erase the taxonomy callers need in order to decide. |
+
+Signature rules (`primitive-soup`, `too-many-parameters`, `untyped-error`)
+skip methods inside `impl Trait for T`: those signatures are the trait's
+decision, not yours. They still apply to the trait definition itself.
 
 ### Architecture and style
 

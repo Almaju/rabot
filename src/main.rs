@@ -40,6 +40,9 @@ enum Command {
         /// Do not write; exit non-zero if any file would change.
         #[arg(long)]
         check: bool,
+        /// Print a unified diff of every change (implies --check).
+        #[arg(long)]
+        diff: bool,
         /// Output format.
         #[arg(long, value_enum, default_value_t = Format::Text)]
         format: Format,
@@ -64,6 +67,8 @@ enum CliError {
 fn main() -> ExitCode {
     match Cli::parse().run() {
         Ok(code) => code,
+        // The reader closed the pipe (`rabot check | head`): not our problem.
+        Err(CliError::Output(error)) if error.kind() == std::io::ErrorKind::BrokenPipe => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("error: {error}");
             let mut source = std::error::Error::source(&error);
@@ -91,15 +96,23 @@ impl Cli {
                 Report::new(format, &self.root).write(&outcome, &mut out)?;
                 Ok(exit_code(&outcome, strict))
             }
-            Command::Fmt { check, format, paths } => {
+            Command::Fmt {
+                check,
+                diff,
+                format,
+                paths,
+            } => {
                 let app = App::load(&self.root)?;
+                let check = check || diff;
                 let mode = if check {
                     FormatMode::Check
                 } else {
                     FormatMode::Write
                 };
                 let outcome = app.format(&paths, mode)?;
-                Report::new(format, &self.root).write(&outcome, &mut out)?;
+                Report::new(format, &self.root)
+                    .with_diff(diff)
+                    .write(&outcome, &mut out)?;
                 let would_change = check && !outcome.changed.is_empty();
                 Ok(if outcome.has_errors() || would_change {
                     ExitCode::from(1)
