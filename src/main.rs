@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 use rabot::app::{App, AppError, FormatMode, Outcome};
 use rabot::config::{Config, FILE_NAME};
 use rabot::diagnostic::Level;
+use rabot::file_set::Scope;
 use rabot::report::{Format, Report};
 use rabot::rule::Rule;
 
@@ -26,6 +27,10 @@ struct Cli {
 enum Command {
     /// Report everything that breaks a principle. Writes nothing.
     Check {
+        /// Only files git sees as changed: uncommitted by default, or since
+        /// a ref (`--changed=main`). Migrate on contact.
+        #[arg(long, value_name = "REF", num_args = 0..=1, default_missing_value = "HEAD")]
+        changed: Option<String>,
         /// Output format.
         #[arg(long, value_enum, default_value_t = Format::Text)]
         format: Format,
@@ -37,6 +42,10 @@ enum Command {
     },
     /// Sort fields, variants, impl items, derives and struct literals in place.
     Fmt {
+        /// Only files git sees as changed: uncommitted by default, or since
+        /// a ref (`--changed=main`). Migrate on contact.
+        #[arg(long, value_name = "REF", num_args = 0..=1, default_missing_value = "HEAD")]
+        changed: Option<String>,
         /// Do not write; exit non-zero if any file would change.
         #[arg(long)]
         check: bool,
@@ -87,16 +96,18 @@ impl Cli {
         let mut out = stdout.lock();
         match self.command {
             Command::Check {
+                changed,
                 format,
                 paths,
                 strict,
             } => {
                 let app = App::load(&self.root)?;
-                let outcome = app.check(&paths)?;
+                let outcome = app.check(&Scope::from_flags(changed, paths))?;
                 Report::new(format, &self.root).write(&outcome, &mut out)?;
                 Ok(exit_code(&outcome, strict))
             }
             Command::Fmt {
+                changed,
                 check,
                 diff,
                 format,
@@ -109,7 +120,7 @@ impl Cli {
                 } else {
                     FormatMode::Write
                 };
-                let outcome = app.format(&paths, mode)?;
+                let outcome = app.format(&Scope::from_flags(changed, paths), mode)?;
                 Report::new(format, &self.root)
                     .with_diff(diff)
                     .write(&outcome, &mut out)?;

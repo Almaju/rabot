@@ -23,6 +23,8 @@ rabot check --strict   # warnings fail the build too
 rabot fmt              # sort fields, variants, impl items, derives, struct literals
 rabot fmt --check      # exit 1 if any file would change
 rabot fmt --diff       # show what fmt would change, as a unified diff
+rabot check --changed  # only files with uncommitted changes
+rabot fmt --changed=main   # only files touched since main
 rabot rules            # every rule, its default level, the article behind it
 rabot init             # write a rabot.toml with every rule listed
 ```
@@ -83,6 +85,17 @@ decision, not yours. They still apply to the trait definition itself.
 | `mock-usage` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `mockall`, `faux`, `mock!`, `#[automock]`. Mocks test your assumptions; build the in-memory implementation. |
 | `commented-out-code` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): a comment that parses as Rust is code somebody could not delete. You have git. |
 | `vague-todo` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): `// TODO: refactor this` says nothing. Say what, why, or link the ticket. |
+
+## Migrate on contact
+
+> Apply alphabetical ordering to all new code going forward. To any file
+> you're already modifying. Don't create churn for its own sake.
+
+`--changed` scopes `check` and `fmt` to the files git sees as added,
+modified or untracked: uncommitted work by default, or everything since a ref
+with `--changed=<ref>`. A pre-commit hook or a PR job can run
+`rabot fmt --check --changed=origin/main` and leave the rest of the codebase
+alone until someone touches it.
 
 ## Exceptions must be written down
 

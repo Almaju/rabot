@@ -5,7 +5,7 @@ use thiserror::Error;
 use crate::config::{Config, ConfigError};
 use crate::diagnostic::{Diagnostic, Level, Position};
 use crate::edit::{EditError, Edits};
-use crate::file_set::{FileSet, FileSetError};
+use crate::file_set::{FileSet, FileSetError, Scope};
 use crate::rule::Rule;
 use crate::rules::{Context, Findings, LocalTypes};
 use crate::source_file::SourceFile;
@@ -96,9 +96,9 @@ impl App {
     }
 
     /// Lint: every rule, every diagnostic, nothing written.
-    pub fn check(&self, roots: &[PathBuf]) -> Result<Outcome, AppError> {
+    pub fn check(&self, scope: &Scope) -> Result<Outcome, AppError> {
         let mut outcome = Outcome::default();
-        let files = self.parse_all(roots, &mut outcome)?;
+        let files = self.parse_all(scope, &mut outcome)?;
         let local_types = LocalTypes::collect(&files);
         for file in &files {
             let findings = self.findings(file, &local_types);
@@ -109,9 +109,9 @@ impl App {
 
     /// Format: apply every fix the sorting rules offer, repeating until the
     /// file is stable, then write it back (or just report, in check mode).
-    pub fn format(&self, roots: &[PathBuf], mode: FormatMode) -> Result<Outcome, AppError> {
+    pub fn format(&self, scope: &Scope, mode: FormatMode) -> Result<Outcome, AppError> {
         let mut outcome = Outcome::default();
-        let files = self.parse_all(roots, &mut outcome)?;
+        let files = self.parse_all(scope, &mut outcome)?;
         let local_types = LocalTypes::collect(&files);
         for file in files {
             let path = file.path.clone();
@@ -191,13 +191,15 @@ impl App {
         cx.run_all()
     }
 
-    fn parse_all(&self, roots: &[PathBuf], outcome: &mut Outcome) -> Result<Vec<SourceFile>, AppError> {
-        let roots: Vec<PathBuf> = if roots.is_empty() {
-            vec![self.root.clone()]
-        } else {
-            roots.to_vec()
+    fn parse_all(&self, scope: &Scope, outcome: &mut Outcome) -> Result<Vec<SourceFile>, AppError> {
+        let excludes = &self.config.files.exclude;
+        let set = match scope {
+            Scope::Changed { since } => FileSet::changed(&self.root, since.as_deref(), excludes)?,
+            Scope::Paths(roots) if roots.is_empty() => {
+                FileSet::discover(std::slice::from_ref(&self.root), excludes)?
+            }
+            Scope::Paths(roots) => FileSet::discover(roots, excludes)?,
         };
-        let set = FileSet::discover(&roots, &self.config.files.exclude)?;
         outcome.files_seen = set.len();
         let mut files = Vec::with_capacity(set.len());
         for path in set.iter() {
