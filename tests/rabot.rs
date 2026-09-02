@@ -35,6 +35,7 @@ fn every_rule_fires_where_expected() {
         (Rule::FreeFunction, 67),
         (Rule::FreeFunction, 71),
         (Rule::FreeFunction, 90),
+        (Rule::FreeFunction, 100),
         (Rule::GlobalState, 7),
         (Rule::MockUsage, 111),
         (Rule::OrphanModule, 5),
