@@ -18,8 +18,36 @@ enum Piece {
 }
 
 impl SortKey {
-    pub fn original(&self) -> &str {
-        &self.original
+    pub fn new(name: &str) -> Self {
+        let name = name.strip_prefix("r#").unwrap_or(name);
+        let mut pieces = Vec::new();
+        let mut digits = String::new();
+        let mut text = String::new();
+        for c in name.chars() {
+            if c.is_ascii_digit() {
+                if !text.is_empty() {
+                    pieces.push(Piece::Text(std::mem::take(&mut text)));
+                }
+                digits.push(c);
+            } else {
+                if !digits.is_empty() {
+                    pieces.push(Piece::Number(
+                        std::mem::take(&mut digits).parse().unwrap_or(u128::MAX),
+                    ));
+                }
+                text.extend(c.to_lowercase());
+            }
+        }
+        if !text.is_empty() {
+            pieces.push(Piece::Text(text));
+        }
+        if !digits.is_empty() {
+            pieces.push(Piece::Number(digits.parse().unwrap_or(u128::MAX)));
+        }
+        Self {
+            original: name.to_string(),
+            pieces,
+        }
     }
 
     /// The same ordering, displayed under another name: for members whose
@@ -29,6 +57,10 @@ impl SortKey {
             original: label.to_string(),
             ..self
         }
+    }
+
+    pub fn original(&self) -> &str {
+        &self.original
     }
 }
 
