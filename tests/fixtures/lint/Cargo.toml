@@ -1,0 +1,6 @@
+# Marks the fixture as its own crate so `src/lib.rs` is production code
+# rather than a file under rabot's `tests/` directory.
+[package]
+name = "lint-fixture"
+version = "0.0.0"
+edition = "2024"
