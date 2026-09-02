@@ -11,12 +11,23 @@ reads like architecture or like sediment.
 
 ## Install
 
+Prebuilt binaries for Linux and macOS (x86_64 and arm64):
+
 ```sh
-cargo install --git https://github.com/almaju/rabot --locked
+curl -fsSL https://raw.githubusercontent.com/almaju/rabot/main/install.sh | sh
 ```
 
-This installs two binaries: `rabot`, and `cargo-rabot` so that `cargo rabot`
-works too. rabot has no runtime dependencies; `rustfmt` is used when present.
+Or with cargo, from source or from the release archives:
+
+```sh
+cargo install --git https://github.com/almaju/rabot --locked   # builds from source
+cargo binstall --git https://github.com/almaju/rabot rabot      # downloads a release
+```
+
+Windows archives are attached to every
+[release](https://github.com/almaju/rabot/releases). Each install provides
+two binaries: `rabot`, and `cargo-rabot` so that `cargo rabot` works too.
+rabot has no runtime dependencies; `rustfmt` is used when present.
 
 ## Use
 
@@ -42,10 +53,13 @@ nearest `Cargo.toml`) on every file it rewrote, so the result is what
 ### In CI
 
 ```yaml
-- uses: dtolnay/rust-toolchain@stable
-- run: cargo install --git https://github.com/almaju/rabot --locked
-- run: rabot fmt --check && rabot check --strict
+- uses: almaju/rabot@main
 ```
+
+That installs the latest release, fails on anything `rabot fmt` would reorder
+(showing the diff), then runs `rabot check --strict`. Inputs: `version` (a
+release tag), `args` (default `check --strict`), `fmt-check` (default `true`)
+and `working-directory`.
 
 ### Before every commit
 

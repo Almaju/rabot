@@ -10,6 +10,15 @@ keywords = ["lint", "formatter", "style", "architecture"]
 categories = ["development-tools"]
 exclude = ["tests/fixtures/lint/Cargo.toml"]
 
+# `cargo binstall rabot` finds the release archives without compiling.
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/rabot-v{ version }-{ target }{ archive-suffix }"
+bin-dir = "rabot-v{ version }-{ target }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-fmt = "zip"
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 ignore = "0.4"
