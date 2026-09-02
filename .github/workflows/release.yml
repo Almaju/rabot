@@ -1,13 +1,24 @@
 name: Release
 
-# Pushing a tag `v*` builds rabot for every supported platform and attaches
-# the archives to a GitHub release, which is what install.sh downloads.
+# Pushing a tag `v*`, or dispatching this workflow with a tag name, builds
+# rabot for every supported platform and attaches the archives to a GitHub
+# release, which is what install.sh downloads. A dispatched run creates the
+# tag on the commit it was started from.
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create, e.g. v0.1.0 (must match Cargo.toml's version)"
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+env:
+  VERSION: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   build:
@@ -24,6 +35,11 @@ jobs:
           - { target: x86_64-pc-windows-msvc, os: windows-latest }
     steps:
       - uses: actions/checkout@v4
+      - name: tag matches Cargo.toml
+        shell: bash
+        run: |
+          crate=$(grep -m1 '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          [ "$VERSION" = "v$crate" ] || { echo "tag $VERSION does not match Cargo.toml version $crate" >&2; exit 1; }
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -32,7 +48,7 @@ jobs:
       - name: package (unix)
         if: runner.os != 'Windows'
         run: |
-          name="rabot-${{ github.ref_name }}-${{ matrix.target }}"
+          name="rabot-$VERSION-${{ matrix.target }}"
           mkdir "$name"
           cp target/${{ matrix.target }}/release/rabot target/${{ matrix.target }}/release/cargo-rabot README.md LICENSE "$name/"
           tar czf "$name.tar.gz" "$name"
@@ -41,7 +57,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $name = "rabot-${{ github.ref_name }}-${{ matrix.target }}"
+          $name = "rabot-$env:VERSION-${{ matrix.target }}"
           New-Item -ItemType Directory $name | Out-Null
           Copy-Item target/${{ matrix.target }}/release/rabot.exe, target/${{ matrix.target }}/release/cargo-rabot.exe, README.md, LICENSE $name/
           Compress-Archive -Path $name -DestinationPath "$name.zip"
@@ -68,3 +84,5 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+          tag_name: ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
