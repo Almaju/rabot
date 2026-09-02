@@ -63,7 +63,13 @@ impl FileSet {
     /// codebase that predates rabot migrates: on contact, file by file.
     pub fn changed(root: &Path, since: Option<&str>, excludes: &[String]) -> Result<Self, FileSetError> {
         let mut args = vec!["diff", "--name-only", "--diff-filter=ACMR", "--relative"];
-        args.push(since.unwrap_or("HEAD"));
+        match since {
+            Some(since) => args.push(since),
+            // A repository with no commit yet has no HEAD to diff against;
+            // everything staged is "changed".
+            None if has_head(root) => args.push("HEAD"),
+            None => args.push("--cached"),
+        }
         let mut names = git(root, &args)?;
         names.extend(git(root, &["ls-files", "--others", "--exclude-standard"])?);
         let mut overrides = OverrideBuilder::new(root);
@@ -156,6 +162,10 @@ fn excluded(overrides: &ignore::overrides::Override, root: &Path, path: &Path) -
         }
     }
     false
+}
+
+fn has_head(root: &Path) -> bool {
+    git(root, &["rev-parse", "--verify", "--quiet", "HEAD"]).is_ok()
 }
 
 fn git(root: &Path, args: &[&str]) -> Result<Vec<String>, FileSetError> {

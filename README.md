@@ -12,25 +12,46 @@ reads like architecture or like sediment.
 ## Install
 
 ```sh
-cargo install --git https://github.com/almaju/rabot
+cargo install --git https://github.com/almaju/rabot --locked
 ```
+
+This installs two binaries: `rabot`, and `cargo-rabot` so that `cargo rabot`
+works too. rabot has no runtime dependencies; `rustfmt` is used when present.
 
 ## Use
 
 ```sh
-rabot check            # lint the current directory, write nothing
+rabot                  # = rabot check: lint the current directory, write nothing
 rabot check --strict   # warnings fail the build too
 rabot fmt              # sort fields, variants, impl items, derives, struct literals
+                       # and patterns, then rustfmt the files it touched
 rabot fmt --check      # exit 1 if any file would change
 rabot fmt --diff       # show what fmt would change, as a unified diff
 rabot check --changed  # only files with uncommitted changes
 rabot fmt --changed=main   # only files touched since main
+rabot hook             # install a pre-commit hook that does the two lines above
 rabot rules            # every rule, its default level, the article behind it
 rabot init             # write a rabot.toml with every rule listed
+cargo rabot check      # same thing, as a cargo subcommand
 ```
 
-rabot reorders code but does not re-indent it. Run `cargo fmt` after
-`rabot fmt`.
+`rabot fmt` reorders code and then runs `rustfmt` (with the edition of the
+nearest `Cargo.toml`) on every file it rewrote, so the result is what
+`cargo fmt` would produce. Pass `--no-rustfmt` to skip that step.
+
+### In CI
+
+```yaml
+- uses: dtolnay/rust-toolchain@stable
+- run: cargo install --git https://github.com/almaju/rabot --locked
+- run: rabot fmt --check && rabot check --strict
+```
+
+### Before every commit
+
+`rabot hook` writes `.git/hooks/pre-commit`. The hook checks only the files
+in the commit: `rabot fmt --check --changed`, then `rabot check --changed`.
+`rabot hook --print` shows the script; `--force` replaces an existing hook.
 
 ## The rules
 
@@ -95,9 +116,9 @@ decision, not yours. They still apply to the trait definition itself.
 
 `--changed` scopes `check` and `fmt` to the files git sees as added,
 modified or untracked: uncommitted work by default, or everything since a ref
-with `--changed=<ref>`. A pre-commit hook or a PR job can run
-`rabot fmt --check --changed=origin/main` and leave the rest of the codebase
-alone until someone touches it.
+with `--changed=<ref>`. `rabot hook` installs exactly that as a pre-commit
+hook; a PR job can run `rabot fmt --check --changed=origin/main`. The rest of
+the codebase is left alone until someone touches it.
 
 ## Exceptions must be written down
 
