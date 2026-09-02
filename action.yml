@@ -1,0 +1,46 @@
+name: rabot
+description: Lint and check formatting with rabot, the linter for the principles of https://almaju.github.io/blog/
+author: almaju
+
+branding:
+  icon: check-square
+  color: orange
+
+inputs:
+  version:
+    description: rabot release tag to install (default: latest release)
+    required: false
+    default: ""
+  args:
+    description: Arguments passed to rabot after installation
+    required: false
+    default: check --strict
+  fmt-check:
+    description: Also fail if `rabot fmt --check` would reorder anything
+    required: false
+    default: "true"
+  working-directory:
+    description: Directory holding rabot.toml
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: install rabot
+      shell: bash
+      env:
+        RABOT_VERSION: ${{ inputs.version }}
+        RABOT_INSTALL: ${{ runner.temp }}/rabot-bin
+      run: |
+        curl -fsSL "https://raw.githubusercontent.com/almaju/rabot/main/install.sh" | sh
+        echo "$RABOT_INSTALL" >> "$GITHUB_PATH"
+    - name: rabot fmt --check
+      if: inputs.fmt-check == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: rabot fmt --diff
+    - name: rabot ${{ inputs.args }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: rabot ${{ inputs.args }}
