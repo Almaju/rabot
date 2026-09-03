@@ -144,6 +144,50 @@ impl Rule {
         }
     }
 
+    /// The rule's page from the documentation, Markdown, for `rabot explain`.
+    pub fn documentation(self) -> &'static str {
+        macro_rules! page {
+            ($name:literal) => {
+                include_str!(concat!("../docs/src/rules/", $name, ".md"))
+            };
+        }
+        match self {
+            Rule::BypassableConstructor => page!("bypassable-constructor"),
+            Rule::CommentedOutCode => page!("commented-out-code"),
+            Rule::FreeFunction => page!("free-function"),
+            Rule::GlobalState => page!("global-state"),
+            Rule::IgnoredTest => page!("ignored-test"),
+            Rule::MockUsage => page!("mock-usage"),
+            Rule::OrphanModule => page!("orphan-module"),
+            Rule::OversizedImpl => page!("oversized-impl"),
+            Rule::PanicInProduction => page!("panic-in-production"),
+            Rule::PrimitiveField => page!("primitive-field"),
+            Rule::PrimitiveSoup => page!("primitive-soup"),
+            Rule::SectionedFunction => page!("sectioned-function"),
+            Rule::SortedDerives => page!("sorted-derives"),
+            Rule::SortedFields => page!("sorted-fields"),
+            Rule::SortedImplItems => page!("sorted-impl-items"),
+            Rule::SortedStructLiteral => page!("sorted-struct-literal"),
+            Rule::SortedStructPattern => page!("sorted-struct-pattern"),
+            Rule::SortedTraitItems => page!("sorted-trait-items"),
+            Rule::SortedVariants => page!("sorted-variants"),
+            Rule::StringlyTypedField => page!("stringly-typed-field"),
+            Rule::SwallowedError => page!("swallowed-error"),
+            Rule::SyntaxError => page!("syntax-error"),
+            Rule::TooManyParameters => page!("too-many-parameters"),
+            Rule::UndocumentedException => page!("undocumented-exception"),
+            Rule::UnknownRule => page!("unknown-rule"),
+            Rule::UntypedError => page!("untyped-error"),
+            Rule::VagueTodo => page!("vague-todo"),
+            Rule::VagueTypeName => page!("vague-type-name"),
+        }
+    }
+
+    /// The published page for this rule.
+    pub fn documentation_url(self) -> String {
+        format!("https://almaju.github.io/rabot/rules/{}.html", self.name())
+    }
+
     pub fn fixable(self) -> bool {
         matches!(
             self,
@@ -227,5 +271,50 @@ impl Rule {
 impl fmt::Display for Rule {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.name())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_rule_is_documented_with_dos_and_donts() {
+        for rule in Rule::all() {
+            let page = rule.documentation();
+            assert!(page.starts_with(&format!("# {}\n", rule.name())), "{rule}: title");
+            assert!(page.contains("## What it checks"), "{rule}: what it checks");
+            if !matches!(rule, Rule::SyntaxError) {
+                assert!(
+                    page.contains("## Don't") && page.contains("## Do"),
+                    "{rule}: do and don't"
+                );
+            }
+            assert!(
+                page.contains("**Level**: error") || page.contains("**Level**: warn"),
+                "{rule}: level"
+            );
+        }
+    }
+
+    #[test]
+    fn documented_levels_match_defaults() {
+        for rule in Rule::all() {
+            let expected = format!("**Level**: {}", rule.default_level());
+            let page = rule.documentation();
+            let stated = if page.contains("**Level**: error") {
+                "**Level**: error"
+            } else {
+                "**Level**: warn"
+            };
+            assert_eq!(stated, expected.replace("warning", "warn"), "{rule}");
+        }
+    }
+
+    #[test]
+    fn names_round_trip() {
+        for rule in Rule::all() {
+            assert_eq!(Rule::parse(rule.name()), Some(*rule));
+        }
     }
 }

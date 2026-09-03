@@ -1,0 +1,16 @@
+[book]
+authors = ["Alexandre"]
+language = "en"
+src = "src"
+title = "rabot"
+description = "A linter and formatter for Rust that enforces the principles of The Unwrap"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/almaju/rabot"
+edit-url-template = "https://github.com/almaju/rabot/edit/main/docs/{path}"
+site-url = "/rabot/"
+
+[output.html.search]
+limit-results = 20

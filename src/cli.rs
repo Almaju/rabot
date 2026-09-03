@@ -49,6 +49,11 @@ enum Command {
         #[arg(long)]
         strict: bool,
     },
+    /// Show a rule's documentation: what it checks, don't, do, how to silence it.
+    Explain {
+        /// The rule name, as printed in diagnostics (e.g. `sorted-fields`).
+        rule: String,
+    },
     /// Sort fields, variants, impl items, derives, struct literals and
     /// patterns in place, then run rustfmt on what changed.
     Fmt {
@@ -168,6 +173,17 @@ impl Cli {
                     ExitCode::SUCCESS
                 })
             }
+            Command::Explain { rule } => match Rule::parse(&rule) {
+                Some(rule) => {
+                    write!(out, "{}", rule.documentation())?;
+                    writeln!(out, "\nOnline: {}", rule.documentation_url())?;
+                    Ok(ExitCode::SUCCESS)
+                }
+                None => {
+                    writeln!(out, "no rule named `{rule}`; `rabot rules` lists them")?;
+                    Ok(ExitCode::from(1))
+                }
+            },
             Command::Hook { force, print } => {
                 if print {
                     write!(out, "{}", PreCommitHook::script())?;

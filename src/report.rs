@@ -107,8 +107,9 @@ impl<'a> Report<'a> {
         }
         writeln!(
             out,
-            "  {} see: {}",
+            "  {} docs: rabot explain {} | {}",
             self.paint(Style::Location, "="),
+            diagnostic.rule,
             diagnostic.rule.reference()
         )?;
         writeln!(out)

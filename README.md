@@ -1,5 +1,7 @@
 # rabot
 
+**Documentation: [almaju.github.io/rabot](https://almaju.github.io/rabot/)**, with a do/don't page for every rule.
+
 A linter and formatter for Rust that enforces the principles of
 [The Unwrap](https://almaju.github.io/blog/): sort everything, name what you
 built, wrap your primitives, treat errors as data, and write down every
@@ -42,6 +44,7 @@ rabot check --changed  # only files with uncommitted changes
 rabot fmt --changed=main   # only files touched since main
 rabot hook             # install a pre-commit hook that does the two lines above
 rabot rules            # every rule, its default level, the article behind it
+rabot explain <rule>   # a rule's documentation: what it checks, don't, do, silence
 rabot init             # write a rabot.toml with every rule listed
 cargo rabot check      # same thing, as a cargo subcommand
 ```
