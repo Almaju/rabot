@@ -16,8 +16,11 @@ impl Check for Primitives {
             cx,
             findings: Findings::default(),
             in_trait_impl: false,
+            open_newtypes: std::collections::BTreeMap::new(),
+            validating: std::collections::BTreeMap::new(),
         };
         visitor.visit_file(&cx.file.ast);
+        visitor.report_bypassable_constructors();
         visitor.findings
     }
 }
@@ -32,6 +35,11 @@ struct Visitor<'a> {
     findings: Findings,
     /// Inside `impl Trait for T`, where the signatures are the trait's choice.
     in_trait_impl: bool,
+    /// Single-field tuple structs whose field is `pub`, by name.
+    open_newtypes: std::collections::BTreeMap<String, proc_macro2::Span>,
+    /// Types with an associated fn returning `Result<Self, _>` or `Option<Self>`,
+    /// with the name of that fn.
+    validating: std::collections::BTreeMap<String, String>,
 }
 
 impl Visitor<'_> {
@@ -52,6 +60,22 @@ impl Visitor<'_> {
             let Some(primitive) = primitive_name(&field.ty) else {
                 continue;
             };
+            if self.is_enum_field(&name) && primitive.to_ascii_lowercase().contains("str") {
+                let suggestion = format!("{}{}", item.ident, newtype_name(&name));
+                self.findings.report_with_help(
+                    self.cx,
+                    Rule::StringlyTypedField,
+                    ident.span(),
+                    format!(
+                        "`{name}: {primitive}` in `{}`: the valid values are an enum that has not been written yet",
+                        item.ident
+                    ),
+                    Some(format!(
+                        "`enum {suggestion} {{ .. }}`, parsed once at the boundary; the compiler then checks every match"
+                    )),
+                );
+                continue;
+            }
             if primitive.contains("bool") || primitive.contains("char") || !self.is_domain_field(&name) {
                 continue;
             }
@@ -134,6 +158,39 @@ impl Visitor<'_> {
             }
         })
     }
+
+    fn is_enum_field(&self, name: &str) -> bool {
+        let lowered = name.trim_start_matches("r#").to_ascii_lowercase();
+        self.cx
+            .config
+            .naming
+            .enum_fields
+            .iter()
+            .any(|pattern| lowered == *pattern || lowered.ends_with(&format!("_{pattern}")))
+    }
+
+    fn report_bypassable_constructors(&mut self) {
+        let found: Vec<(String, proc_macro2::Span, String)> = self
+            .open_newtypes
+            .iter()
+            .filter_map(|(name, span)| {
+                self.validating
+                    .get(name)
+                    .map(|ctor| (name.clone(), *span, ctor.clone()))
+            })
+            .collect();
+        for (name, span, ctor) in found {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::BypassableConstructor,
+                span,
+                format!(
+                    "`{name}` validates in `{name}::{ctor}` but its field is `pub`: anyone can write `{name}(..)` and skip the door"
+                ),
+                Some("make the field private; expose the value through a method instead".to_string()),
+            );
+        }
+    }
 }
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
@@ -149,17 +206,63 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_item_impl(&mut self, node: &'ast syn::ItemImpl) {
         let was = self.in_trait_impl;
         self.in_trait_impl = node.trait_.is_some();
+        if node.trait_.is_none()
+            && let Some(self_type) = crate::rules::type_ident(&node.self_ty)
+        {
+            for item in &node.items {
+                if let syn::ImplItem::Fn(function) = item
+                    && function.sig.receiver().is_none()
+                    && returns_checked_self(&function.sig, &self_type.to_string())
+                {
+                    self.validating
+                        .entry(self_type.to_string())
+                        .or_insert_with(|| function.sig.ident.to_string());
+                }
+            }
+        }
         syn::visit::visit_item_impl(self, node);
         self.in_trait_impl = was;
     }
 
     fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
+        if let syn::Fields::Unnamed(fields) = &node.fields
+            && fields.unnamed.len() == 1
+            && !matches!(fields.unnamed[0].vis, syn::Visibility::Inherited)
+        {
+            self.open_newtypes
+                .insert(node.ident.to_string(), node.ident.span());
+        }
         self.check_fields(node);
     }
 
     fn visit_trait_item_fn(&mut self, node: &'ast syn::TraitItemFn) {
         self.check_signature(&node.sig);
     }
+}
+
+/// `-> Result<Self, E>`, `-> Option<Self>`, `-> Result<Email, E>`: a
+/// constructor that can say no.
+fn returns_checked_self(sig: &syn::Signature, self_type: &str) -> bool {
+    let syn::ReturnType::Type(_, ty) = &sig.output else {
+        return false;
+    };
+    let syn::Type::Path(path) = &**ty else {
+        return false;
+    };
+    let Some(segment) = path.path.segments.last() else {
+        return false;
+    };
+    if segment.ident != "Result" && segment.ident != "Option" {
+        return false;
+    }
+    let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+        return false;
+    };
+    matches!(
+        arguments.args.first(),
+        Some(syn::GenericArgument::Type(inner))
+            if crate::rules::type_ident(inner).is_some_and(|ident| ident == "Self" || ident == self_type)
+    )
 }
 
 /// `user_id` becomes `UserId`, `created_at` becomes `CreatedAt`.

@@ -22,6 +22,9 @@ impl Check for Errors {
     }
 }
 
+const SWALLOW_HELP: &str =
+    "propagate with `?`, log it with the context a reader at 3am needs, or match on the variant and act";
+
 struct Visitor<'a> {
     cx: &'a Context<'a>,
     findings: Findings,
@@ -40,32 +43,68 @@ impl Visitor<'_> {
             return;
         };
         let text = self.cx.file.text_of(&**ty);
-        let erased = if text.contains("dyn") && text.contains("Error") {
-            Some("`Box<dyn Error>`")
+        let (erased, why) = if text.contains("dyn") && text.contains("Error") {
+            (
+                "`Box<dyn Error>`",
+                "callers cannot match on what went wrong, so they will guess",
+            )
         } else if text.contains("anyhow") {
-            Some("`anyhow`")
+            (
+                "`anyhow`",
+                "callers cannot match on what went wrong, so they will guess",
+            )
         } else if text.contains("eyre") {
-            Some("`eyre`")
+            (
+                "`eyre`",
+                "callers cannot match on what went wrong, so they will guess",
+            )
+        } else if string_error(ty) {
+            ("a `String` error", "callers can display it, never react to it")
         } else {
-            None
-        };
-        let Some(erased) = erased else {
             return;
         };
         self.findings.report_with_help(
             self.cx,
             Rule::UntypedError,
             ty.span(),
-            format!(
-                "`{}` returns {erased}: callers cannot match on what went wrong, so they will guess",
-                sig.ident
-            ),
+            format!("`{}` returns {erased}: {why}", sig.ident),
             Some("return an enum of the failures a caller can react to differently".to_string()),
         );
     }
 }
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
+    fn visit_arm(&mut self, node: &'ast syn::Arm) {
+        if is_err_pattern(&node.pat) && is_empty(&node.body) {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::SwallowedError,
+                node.pat.span(),
+                "an empty `Err` arm is a silent catch: the failure happened and nobody will know".to_string(),
+                Some(SWALLOW_HELP.to_string()),
+            );
+        }
+        syn::visit::visit_arm(self, node);
+    }
+
+    fn visit_expr_if(&mut self, node: &'ast syn::ExprIf) {
+        if let syn::Expr::Let(let_expr) = &*node.cond
+            && is_err_pattern(&let_expr.pat)
+            && node.then_branch.stmts.is_empty()
+            && node.else_branch.is_none()
+        {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::SwallowedError,
+                let_expr.pat.span(),
+                "`if let Err(..)` with an empty body is a silent catch: the failure happened and nobody will know"
+                    .to_string(),
+                Some(SWALLOW_HELP.to_string()),
+            );
+        }
+        syn::visit::visit_expr_if(self, node);
+    }
+
     fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
         if self.startup_depth == 0 {
             let method = node.method.to_string();
@@ -130,8 +169,69 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
         );
     }
 
+    fn visit_stmt(&mut self, node: &'ast syn::Stmt) {
+        if let syn::Stmt::Expr(syn::Expr::MethodCall(call), Some(_)) = node
+            && call.method == "ok"
+            && call.args.is_empty()
+        {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::SwallowedError,
+                call.method.span(),
+                "`.ok();` as a statement throws the error away".to_string(),
+                Some(SWALLOW_HELP.to_string()),
+            );
+        }
+        syn::visit::visit_stmt(self, node);
+    }
+
     fn visit_trait_item_fn(&mut self, node: &'ast syn::TraitItemFn) {
         self.check_signature(&node.sig);
         syn::visit::visit_trait_item_fn(self, node);
+    }
+}
+
+fn is_empty(body: &syn::Expr) -> bool {
+    match body {
+        syn::Expr::Block(block) => block.block.stmts.is_empty(),
+        syn::Expr::Tuple(tuple) => tuple.elems.is_empty(),
+        _ => false,
+    }
+}
+
+fn is_err_pattern(pat: &syn::Pat) -> bool {
+    match pat {
+        syn::Pat::TupleStruct(pattern) => pattern
+            .path
+            .segments
+            .last()
+            .is_some_and(|segment| segment.ident == "Err"),
+        _ => false,
+    }
+}
+
+/// `Result<T, String>`, `Result<T, &str>`, `Result<T, &'static str>`.
+fn string_error(ty: &syn::Type) -> bool {
+    let syn::Type::Path(path) = ty else {
+        return false;
+    };
+    let Some(segment) = path.path.segments.last() else {
+        return false;
+    };
+    if segment.ident != "Result" {
+        return false;
+    }
+    let syn::PathArguments::AngleBracketed(arguments) = &segment.arguments else {
+        return false;
+    };
+    let Some(syn::GenericArgument::Type(error)) = arguments.args.iter().nth(1) else {
+        return false;
+    };
+    match error {
+        syn::Type::Path(error) => error.path.is_ident("String"),
+        syn::Type::Reference(reference) => {
+            matches!(&*reference.elem, syn::Type::Path(inner) if inner.path.is_ident("str"))
+        }
+        _ => false,
     }
 }

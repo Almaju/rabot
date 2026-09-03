@@ -106,8 +106,11 @@ parameters are never sorted; calling convention is a real exception.
 | `orphan-module` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): `utils`, `helpers`, `common` are where orphaned logic goes to die. |
 | `oversized-impl` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): more than 20 methods is several types that have not been separated yet. |
 | `too-many-parameters` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): parameters that travel together are a struct waiting to be named. |
+| `stringly-typed-field` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): `status: String`, `kind: String`, `role: String`. The valid values are an enum that has not been written yet. |
+| `bypassable-constructor` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): `pub struct Email(pub String)` with an `Email::parse` that validates. Anyone can write `Email(garbage)` and skip the door. |
+| `swallowed-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): an empty `Err(_) => {}` arm, an empty `if let Err(..)`, or `.ok();` as a statement. Every silent catch is a future 3am. |
 | `panic-in-production` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `unwrap`, `expect`, `panic!`, `todo!` outside tests and `main` are bets that a call never fails. |
-| `untyped-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `Box<dyn Error>` and `anyhow` erase the taxonomy callers need in order to decide. |
+| `untyped-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `Box<dyn Error>`, `anyhow` and `Result<T, String>` erase the taxonomy callers need in order to decide. |
 
 Signature rules (`primitive-soup`, `too-many-parameters`, `untyped-error`)
 skip methods inside `impl Trait for T`: those signatures are the trait's
@@ -118,6 +121,7 @@ decision, not yours. They still apply to the trait definition itself.
 | Rule | Principle |
 | --- | --- |
 | `global-state` | [Dependencies](https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies): a `static` with interior mutability is a dependency hidden from every signature. A logger is fine. |
+| `ignored-test` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `#[ignore]` without a reason. In six months nobody knows why three tests are skipped. `#[ignore = "why"]` is fine. |
 | `mock-usage` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `mockall`, `faux`, `mock!`, `#[automock]`. Mocks test your assumptions; build the in-memory implementation. |
 | `commented-out-code` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): a comment that parses as Rust is code somebody could not delete. You have git. |
 | `vague-todo` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): `// TODO: refactor this` says nothing. Say what, why, or link the ticket. |
@@ -140,12 +144,14 @@ An `unwrap` in a test is the assertion. A `MockClock` under `#[cfg(test)]` is
 exactly the injectable the testing article asks for. So inside test code
 (`#[cfg(test)]` items, `#[cfg(any(test, ..))]`, `#[test]` functions, and
 files under `tests/`, `benches/` or `examples/`) the domain rules stay
-silent: `panic-in-production`, `untyped-error`, `primitive-soup`,
-`primitive-field`, `free-function`, `vague-type-name`, `orphan-module`,
-`oversized-impl`, `too-many-parameters`, `sectioned-function`.
+silent: `panic-in-production`, `swallowed-error`, `untyped-error`,
+`primitive-soup`, `primitive-field`, `stringly-typed-field`,
+`bypassable-constructor`, `free-function`, `vague-type-name`,
+`orphan-module`, `oversized-impl`, `too-many-parameters`,
+`sectioned-function`.
 
-Sorting still applies, and so do the comment rules and `mock-usage`: a test
-file is still code. The list is `[tests] relax` in `rabot.toml`; set it to
+Sorting still applies, and so do the comment rules, `mock-usage` and
+`ignored-test`: a test file is still code. The list is `[tests] relax` in `rabot.toml`; set it to
 `[]` to hold tests to the full standard.
 
 ## Exceptions must be written down
@@ -189,6 +195,7 @@ vague-todo-min-words = 6
 boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record", "Request", "Response", "Row"]
 domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password", "phone",
                  "price", "token", "url", "..."]   # names or `_suffix`es that deserve a newtype
+enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage", "state", "status"]
 orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
                   "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]

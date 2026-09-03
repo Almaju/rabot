@@ -84,6 +84,8 @@ pub struct Naming {
     /// Field names (or `_`-suffixes such as `_id`) that carry domain meaning
     /// and deserve a type of their own.
     pub domain_fields: Vec<String>,
+    /// Field names whose `String` value is really one of a few variants.
+    pub enum_fields: Vec<String>,
     /// Module names that collect orphaned logic.
     pub orphan_modules: Vec<String>,
     /// Type-name suffixes that stand in for a decision nobody made.
@@ -196,6 +198,12 @@ impl Default for Naming {
             ]
             .map(str::to_string)
             .to_vec(),
+            enum_fields: [
+                "category", "kind", "level", "mode", "phase", "role", "stage", "state", "status", "ty",
+                "type_",
+            ]
+            .map(str::to_string)
+            .to_vec(),
             orphan_modules: ["common", "helper", "helpers", "misc", "util", "utils"]
                 .map(str::to_string)
                 .to_vec(),
@@ -222,6 +230,7 @@ impl Default for Tests {
     fn default() -> Self {
         Self {
             relax: vec![
+                Rule::BypassableConstructor,
                 Rule::FreeFunction,
                 Rule::GlobalState,
                 Rule::OrphanModule,
@@ -230,6 +239,8 @@ impl Default for Tests {
                 Rule::PrimitiveField,
                 Rule::PrimitiveSoup,
                 Rule::SectionedFunction,
+                Rule::StringlyTypedField,
+                Rule::SwallowedError,
                 Rule::TooManyParameters,
                 Rule::UntypedError,
                 Rule::VagueTypeName,

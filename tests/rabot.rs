@@ -30,37 +30,46 @@ fn lint_findings() -> Vec<(Rule, usize)> {
 fn every_rule_fires_where_expected() {
     let findings = lint_findings();
     let expected = [
-        (Rule::CommentedOutCode, 58),
-        (Rule::FreeFunction, 65),
-        (Rule::FreeFunction, 67),
-        (Rule::FreeFunction, 71),
-        (Rule::FreeFunction, 90),
-        (Rule::FreeFunction, 100),
+        (Rule::BypassableConstructor, 23),
+        (Rule::CommentedOutCode, 79),
+        (Rule::FreeFunction, 35),
+        (Rule::FreeFunction, 86),
+        (Rule::FreeFunction, 88),
+        (Rule::FreeFunction, 92),
+        (Rule::FreeFunction, 111),
+        (Rule::FreeFunction, 121),
         (Rule::GlobalState, 7),
-        (Rule::MockUsage, 126),
+        (Rule::IgnoredTest, 149),
+        (Rule::MockUsage, 147),
         (Rule::OrphanModule, 5),
-        (Rule::PanicInProduction, 57),
-        (Rule::PanicInProduction, 62),
-        (Rule::PanicInProduction, 68),
+        (Rule::PanicInProduction, 78),
+        (Rule::PanicInProduction, 83),
+        (Rule::PanicInProduction, 89),
         (Rule::PrimitiveField, 12),
         (Rule::PrimitiveField, 13),
-        (Rule::PrimitiveSoup, 56),
-        (Rule::SectionedFunction, 100),
+        (Rule::PrimitiveSoup, 77),
+        (Rule::SectionedFunction, 121),
         (Rule::SortedDerives, 10),
         (Rule::SortedFields, 11),
-        (Rule::SortedFields, 26),
-        (Rule::SortedFields, 36),
-        (Rule::SortedImplItems, 46),
-        (Rule::SortedStructLiteral, 72),
-        (Rule::SortedStructPattern, 91),
-        (Rule::SortedTraitItems, 81),
-        (Rule::SortedVariants, 23),
-        (Rule::TooManyParameters, 79),
-        (Rule::UndocumentedException, 35),
-        (Rule::UnknownRule, 41),
-        (Rule::UntypedError, 75),
-        (Rule::VagueTodo, 60),
-        (Rule::VagueTypeName, 42),
+        (Rule::SortedFields, 47),
+        (Rule::SortedFields, 57),
+        (Rule::SortedImplItems, 67),
+        (Rule::SortedStructLiteral, 93),
+        (Rule::SortedStructPattern, 112),
+        (Rule::SortedTraitItems, 102),
+        (Rule::SortedVariants, 44),
+        (Rule::StringlyTypedField, 32),
+        (Rule::SwallowedError, 36),
+        (Rule::SwallowedError, 37),
+        (Rule::SwallowedError, 40),
+        (Rule::TooManyParameters, 100),
+        (Rule::UndocumentedException, 56),
+        (Rule::UnknownRule, 62),
+        (Rule::UntypedError, 26),
+        (Rule::UntypedError, 88),
+        (Rule::UntypedError, 96),
+        (Rule::VagueTodo, 81),
+        (Rule::VagueTypeName, 63),
     ];
     for expectation in &expected {
         assert!(
@@ -100,7 +109,7 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 30)
+            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 51)
     );
     assert!(
         !findings
@@ -110,11 +119,11 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 108)
+            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 129)
     );
     // Test-gated items relax the domain rules: `#[cfg(test)] fn test_helper` and
     // `#[cfg(any(test, ..))] struct MockService` raise nothing.
-    let relaxed_region = 109..=122;
+    let relaxed_region = 130..=143;
     let in_region: Vec<_> = findings
         .iter()
         .filter(|(_, line)| relaxed_region.contains(line))

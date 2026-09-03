@@ -20,6 +20,27 @@ pub struct CreateUserRequest {
 
 pub struct Email(String);
 
+pub struct Percentage(pub f64);
+
+impl Percentage {
+    pub fn new(value: f64) -> Result<Self, String> {
+        Ok(Self(value))
+    }
+}
+
+pub struct Order {
+    status: String,
+}
+
+pub fn swallow(order: Order) {
+    std::fs::remove_file("x").ok();
+    if let Err(_) = std::fs::remove_file("y") {}
+    match std::fs::remove_file("z") {
+        Ok(()) => {}
+        Err(_) => {}
+    }
+}
+
 pub enum UserRole {
     Member,
     Admin,
@@ -124,6 +145,14 @@ pub struct MockService {
 #[cfg(test)]
 mod tests {
     use mockall::automock;
+
+    #[ignore]
+    #[test]
+    fn skipped_for_no_reason() {}
+
+    #[ignore = "waits on PERF-112"]
+    #[test]
+    fn skipped_for_a_reason() {}
 
     #[test]
     fn unwrap_is_fine_in_tests() {
