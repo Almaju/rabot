@@ -31,6 +31,16 @@ struct Visitor<'a> {
 
 impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_attribute(&mut self, node: &'ast syn::Attribute) {
+        if node.path().is_ident("ignore") && matches!(node.meta, syn::Meta::Path(_)) {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::IgnoredTest,
+                node.span(),
+                "`#[ignore]` without a reason: in six months nobody will know why this test is skipped, or whether it may run again"
+                    .to_string(),
+                Some("write it down: `#[ignore = \"flaky on CI since PERF-112, see ...\"]`".to_string()),
+            );
+        }
         let text = self.cx.file.text_of(node);
         if text.contains("automock") || text.contains("mockall::") || text.contains("faux::") {
             self.findings.report_with_help(

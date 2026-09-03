@@ -11,8 +11,10 @@ const BLOG: &str = "https://almaju.github.io/blog/docs";
 #[serde(rename_all = "kebab-case")]
 pub enum Rule {
     CommentedOutCode,
+    BypassableConstructor,
     FreeFunction,
     GlobalState,
+    IgnoredTest,
     MockUsage,
     OrphanModule,
     OversizedImpl,
@@ -27,6 +29,8 @@ pub enum Rule {
     SortedStructPattern,
     SortedTraitItems,
     SortedVariants,
+    StringlyTypedField,
+    SwallowedError,
     SyntaxError,
     TooManyParameters,
     UndocumentedException,
@@ -40,8 +44,10 @@ impl Rule {
     pub fn all() -> &'static [Rule] {
         &[
             Rule::CommentedOutCode,
+            Rule::BypassableConstructor,
             Rule::FreeFunction,
             Rule::GlobalState,
+            Rule::IgnoredTest,
             Rule::MockUsage,
             Rule::OrphanModule,
             Rule::OversizedImpl,
@@ -56,6 +62,8 @@ impl Rule {
             Rule::SortedStructPattern,
             Rule::SortedTraitItems,
             Rule::SortedVariants,
+            Rule::StringlyTypedField,
+            Rule::SwallowedError,
             Rule::SyntaxError,
             Rule::TooManyParameters,
             Rule::UndocumentedException,
@@ -79,11 +87,15 @@ impl Rule {
 
     pub fn description(self) -> &'static str {
         match self {
+            Rule::BypassableConstructor => {
+                "A newtype that validates in a constructor but exposes its field can be built without it."
+            }
             Rule::CommentedOutCode => "Commented-out code. You have git; there is no temporary.",
             Rule::FreeFunction => {
                 "A free function whose primary parameter or return type is a local type belongs on that type."
             }
             Rule::GlobalState => "Mutable global state hides dependencies from the type signature.",
+            Rule::IgnoredTest => "An ignored test without a reason is a skipped test nobody will un-skip.",
             Rule::MockUsage => "Mocks test your assumptions. Build a real in-memory implementation.",
             Rule::OrphanModule => "A `utils`-style module is where orphaned logic goes to die.",
             Rule::OversizedImpl => {
@@ -112,6 +124,10 @@ impl Rule {
                 "Trait items are ordered: consts, types, then fns, each alphabetically."
             }
             Rule::SortedVariants => "Enum variants are sorted alphabetically.",
+            Rule::StringlyTypedField => "A `status: String` field is an enum that has not been written yet.",
+            Rule::SwallowedError => {
+                "An empty `Err` arm or a trailing `.ok();` is a silent catch: a future 3am."
+            }
             Rule::SyntaxError => "The file does not parse as Rust.",
             Rule::TooManyParameters => {
                 "A function with too many parameters is a type that has not been split yet."
@@ -143,9 +159,11 @@ impl Rule {
 
     pub fn name(self) -> &'static str {
         match self {
+            Rule::BypassableConstructor => "bypassable-constructor",
             Rule::CommentedOutCode => "commented-out-code",
             Rule::FreeFunction => "free-function",
             Rule::GlobalState => "global-state",
+            Rule::IgnoredTest => "ignored-test",
             Rule::MockUsage => "mock-usage",
             Rule::OrphanModule => "orphan-module",
             Rule::OversizedImpl => "oversized-impl",
@@ -160,6 +178,8 @@ impl Rule {
             Rule::SortedStructPattern => "sorted-struct-pattern",
             Rule::SortedTraitItems => "sorted-trait-items",
             Rule::SortedVariants => "sorted-variants",
+            Rule::StringlyTypedField => "stringly-typed-field",
+            Rule::SwallowedError => "swallowed-error",
             Rule::SyntaxError => "syntax-error",
             Rule::TooManyParameters => "too-many-parameters",
             Rule::UndocumentedException => "undocumented-exception",
@@ -178,12 +198,17 @@ impl Rule {
             }
             Rule::FreeFunction | Rule::VagueTypeName => "fundamentals/modeling/method-ownership",
             Rule::GlobalState => "fundamentals/architecture/dependencies",
-            Rule::MockUsage => "fundamentals/architecture/testing",
+            Rule::IgnoredTest | Rule::MockUsage => "fundamentals/architecture/testing",
             Rule::OrphanModule | Rule::OversizedImpl | Rule::TooManyParameters => {
                 "fundamentals/modeling/structs"
             }
-            Rule::PanicInProduction | Rule::UntypedError => "fundamentals/modeling/errors",
-            Rule::PrimitiveField | Rule::PrimitiveSoup => "fundamentals/modeling/primitives",
+            Rule::PanicInProduction | Rule::SwallowedError | Rule::UntypedError => {
+                "fundamentals/modeling/errors"
+            }
+            Rule::BypassableConstructor
+            | Rule::PrimitiveField
+            | Rule::PrimitiveSoup
+            | Rule::StringlyTypedField => "fundamentals/modeling/primitives",
             Rule::SortedDerives
             | Rule::SortedFields
             | Rule::SortedImplItems
