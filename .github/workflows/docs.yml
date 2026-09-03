@@ -1,7 +1,9 @@
 name: Docs
 
-# Builds the mdBook in docs/ and publishes it to GitHub Pages on every push
-# to main.
+# Builds the mdBook in docs/ and pushes it to the gh-pages branch on every
+# push to main. GitHub Pages serves that branch: for a public repository it
+# is enabled automatically the first time the branch appears; otherwise
+# enable it once under Settings > Pages (source: gh-pages, folder: /).
 on:
   push:
     branches: [main]
@@ -9,16 +11,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,20 +29,11 @@ jobs:
             | tar xz -C "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: build
-        run: mdbook build docs
-      - uses: actions/configure-pages@v5
+        run: |
+          mdbook build docs
+          touch docs/book/.nojekyll
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/book
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/book
+          force_orphan: true
