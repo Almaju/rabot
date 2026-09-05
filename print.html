@@ -1,0 +1,2057 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>rabot</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A linter and formatter for Rust that enforces the principles of The Unwrap">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-f9477184.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-fb948e77.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">rabot</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/almaju/rabot" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="rabot"><a class="header" href="#rabot">rabot</a></h1>
+<p>A linter and formatter for Rust that enforces the principles of
+<a href="https://almaju.github.io/blog/">The Unwrap</a>: sort everything, name what you
+built, wrap your primitives, treat errors as data, and write down every
+exception.</p>
+<p><code>rustfmt</code> decides where the whitespace goes. <code>clippy</code> catches bugs. rabot
+enforces the opinions in between: the ones that decide whether a codebase
+reads like architecture or like sediment.</p>
+<pre><code class="language-sh">curl -fsSL https://raw.githubusercontent.com/almaju/rabot/main/install.sh | sh
+rabot            # lint the current directory
+rabot fmt        # sort what can be sorted, then rustfmt the files it touched
+</code></pre>
+<h2 id="how-to-read-the-rules"><a class="header" href="#how-to-read-the-rules">How to read the rules</a></h2>
+<p>Every rule page has the same shape, so you can skim to the part you need:</p>
+<ul>
+<li><strong>Principle</strong>: the one sentence from the article the rule enforces.</li>
+<li><strong>What it checks</strong>: exactly when it fires.</li>
+<li><strong>Don’t</strong> / <strong>Do</strong>: the code it rejects, and what to write instead.</li>
+<li><strong>Silence it</strong>: the allow comment or the config key, when you have a
+reason. The reason is not optional.</li>
+</ul>
+<p>Each page links to the article that makes the full argument. The rule is the
+enforcement; the article is the why.</p>
+<h2 id="two-commands"><a class="header" href="#two-commands">Two commands</a></h2>
+<p><code>rabot check</code> reports every principle violation and writes nothing.
+<code>rabot fmt</code> rewrites what a machine can fix safely: order. Fields, variants,
+impl items, derives, struct literals and patterns. Nothing else changes, and
+<code>rustfmt</code> runs afterwards so the result is what <code>cargo fmt</code> would produce.</p>
+<p>rabot is checked by rabot. Its own source passes <code>rabot fmt --check</code> and
+<code>rabot check --strict</code> in CI, and the handful of places where it breaks its
+own rules carry a written reason.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="install"><a class="header" href="#install">Install</a></h1>
+<h2 id="one-line"><a class="header" href="#one-line">One line</a></h2>
+<p>Linux and macOS, x86_64 and arm64:</p>
+<pre><code class="language-sh">curl -fsSL https://raw.githubusercontent.com/almaju/rabot/main/install.sh | sh
+</code></pre>
+<p>The script downloads the archive for your platform from the latest
+<a href="https://github.com/almaju/rabot/releases">release</a>, verifies its checksum,
+and installs <code>rabot</code> and <code>cargo-rabot</code> into <code>~/.cargo/bin</code> (or <code>~/.local/bin</code>
+when there is no cargo). Two variables tune it:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Variable</th><th>Meaning</th></tr>
+</thead>
+<tbody>
+<tr><td><code>RABOT_VERSION</code></td><td>a release tag, e.g. <code>v0.1.2</code> (default: latest)</td></tr>
+<tr><td><code>RABOT_INSTALL</code></td><td>the directory to install into</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="with-cargo"><a class="header" href="#with-cargo">With cargo</a></h2>
+<pre><code class="language-sh">cargo install --git https://github.com/almaju/rabot --locked   # builds from source
+cargo binstall --git https://github.com/almaju/rabot rabot      # downloads a release
+</code></pre>
+<h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
+<p>Every release carries a <code>x86_64-pc-windows-msvc.zip</code>. Unpack it and put the
+two executables on your <code>PATH</code>.</p>
+<h2 id="what-you-get"><a class="header" href="#what-you-get">What you get</a></h2>
+<p>Two binaries, <code>rabot</code> and <code>cargo-rabot</code>, so both <code>rabot check</code> and
+<code>cargo rabot check</code> work. There are no runtime dependencies. <code>rustfmt</code> is used
+when present, to re-indent after <code>rabot fmt</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="use"><a class="header" href="#use">Use</a></h1>
+<pre><code class="language-sh">rabot                      # = rabot check: lint the current directory, write nothing
+rabot check --strict       # warnings fail the build too
+rabot check --format json  # for editors and scripts
+
+rabot fmt                  # sort fields, variants, impl items, derives,
+                           # struct literals and patterns; then rustfmt
+rabot fmt --check          # exit 1 if any file would change
+rabot fmt --diff           # show what fmt would change, as a unified diff
+rabot fmt --no-rustfmt     # reorder only, leave indentation alone
+
+rabot check --changed      # only files with uncommitted changes
+rabot fmt --changed=main   # only files touched since main
+
+rabot hook                 # install a pre-commit hook
+rabot rules                # every rule, its default level, the article behind it
+rabot explain &lt;rule&gt;       # this documentation, in the terminal
+rabot init                 # write a rabot.toml with every rule listed
+</code></pre>
+<h2 id="a-diagnostic"><a class="header" href="#a-diagnostic">A diagnostic</a></h2>
+<pre><code class="language-text">warning[primitive-soup]: `send_invoice` takes 3 `String` parameters (`user_id`, `email`, `invoice_id`): the compiler cannot tell them apart, so a swapped call site type-checks
+  --&gt; src/billing.rs:12:8
+  = help: give each its own newtype (`struct UserId(String);`) and parse at the boundary
+  = see: https://almaju.github.io/blog/docs/fundamentals/modeling/primitives
+</code></pre>
+<p>The first line names the rule and states the problem in terms of your code.
+The help says what to write instead. The link is the argument.</p>
+<h2 id="exit-codes"><a class="header" href="#exit-codes">Exit codes</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Code</th><th>Meaning</th></tr>
+</thead>
+<tbody>
+<tr><td>0</td><td>clean, or warnings only without <code>--strict</code></td></tr>
+<tr><td>1</td><td>errors, or <code>fmt --check</code> found files to reorder</td></tr>
+<tr><td>2</td><td>rabot itself failed: unreadable file, bad config</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="migrate-on-contact"><a class="header" href="#migrate-on-contact">Migrate on contact</a></h2>
+<blockquote>
+<p>Apply alphabetical ordering to all new code going forward. To any file
+you’re already modifying. Don’t create churn for its own sake.</p>
+</blockquote>
+<p>An existing codebase does not need a big-bang reformat. <code>--changed</code> scopes
+<code>check</code> and <code>fmt</code> to the files git sees as added, modified or untracked:
+uncommitted work by default, or everything since a ref with
+<code>--changed=&lt;ref&gt;</code>. The rest of the codebase is left alone until someone
+touches it.</p>
+<p><code>rabot hook</code> installs exactly that as a git pre-commit hook: the commit is
+refused (with the diff) when a staged file would be reordered, and the
+domain rules run on the staged files.</p>
+<h2 id="in-ci"><a class="header" href="#in-ci">In CI</a></h2>
+<pre><code class="language-yaml">- uses: almaju/rabot@main
+</code></pre>
+<p>installs the latest release, fails on anything <code>rabot fmt</code> would reorder
+(printing the diff), then runs <code>rabot check --strict</code>. Inputs: <code>version</code>,
+<code>args</code>, <code>fmt-check</code>, <code>working-directory</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="exceptions"><a class="header" href="#exceptions">Exceptions</a></h1>
+<blockquote>
+<p>You can break the rule. You must document the exception.</p>
+</blockquote>
+<p>Every rule can be silenced for one item with a comment that names the rule
+and says why:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-fields) drop order matters: the guard must release first
+struct Connection {
+    guard: MutexGuard&lt;'static, ()&gt;,
+    channel: Channel,
+}
+<span class="boring">}</span></code></pre>
+<p>The comment covers the item that follows it: the whole struct, the whole
+function body, the whole impl. As a trailing comment it covers its own line:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let port = env::var("PORT").unwrap(); // rabot: allow(panic-in-production) validated by the deploy script
+<span class="boring">}</span></code></pre>
+<p>Several rules at once, and the whole file:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(free-function, primitive-soup) FFI surface mirrors the C header
+// rabot: allow-file(mock-usage) legacy suite, being replaced under TEST-88
+<span class="boring">}</span></code></pre>
+<h2 id="the-reason-is-not-optional"><a class="header" href="#the-reason-is-not-optional">The reason is not optional</a></h2>
+<p>An allow comment without a reason is itself reported, at error level, as
+<a href="#undocumented-exception"><code>undocumented-exception</code></a>. A rule name
+rabot does not know is <a href="#unknown-rule"><code>unknown-rule</code></a>. The point of
+the comment is the sentence after the parenthesis: the next reader, or you in
+six months, gets the reason instead of a mystery.</p>
+<h2 id="turning-a-rule-off-everywhere"><a class="header" href="#turning-a-rule-off-everywhere">Turning a rule off everywhere</a></h2>
+<p>When a rule does not apply to a project at all, the config is the place, and
+the config file is the documentation:</p>
+<pre><code class="language-toml">[rules]
+free-function = "allow"   # a crate of pure math functions
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p><code>rabot init</code> writes a <code>rabot.toml</code> with every rule listed at its default
+level. Everything has a default; the file may be empty or absent.</p>
+<pre><code class="language-toml">[rules]
+# "allow" | "warn" | "error". Rules not listed keep their default.
+free-function = "allow"
+untyped-error = "error"
+
+[thresholds]
+oversized-impl = 20          # methods across inherent impls in one file
+primitive-soup = 2           # parameters of the same primitive type
+section-comments = 3         # leading comments in one function body
+too-many-parameters = 7      # parameters, excluding self
+vague-todo-min-words = 6     # words a TODO needs, unless it links a ticket
+
+[naming]
+vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
+                  "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]
+orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
+domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password",
+                 "phone", "price", "token", "url", "..."]
+enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage",
+               "state", "status"]
+escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other",
+                         "Unexpected", "Unknown"]
+boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
+                     "Request", "Response", "Row"]
+
+[sorting]
+# Pin derives to a position; the rest stay alphabetical in between.
+derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
+
+[tests]
+# Rules that stay silent in test code.
+relax = ["panic-in-production", "primitive-soup", "free-function", "..."]
+
+[global-state]
+allowed-names = ["LOG"]      # substring match, case-insensitive
+
+[files]
+exclude = ["target"]         # gitignore-style globs
+</code></pre>
+<p>Unknown keys are an error, so a typo cannot silently disable anything.</p>
+<h2 id="levels"><a class="header" href="#levels">Levels</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Level</th><th>Effect</th></tr>
+</thead>
+<tbody>
+<tr><td><code>allow</code></td><td>the rule never reports</td></tr>
+<tr><td><code>warn</code></td><td>reported; exit code 0 unless <code>--strict</code></td></tr>
+<tr><td><code>error</code></td><td>reported; exit code 1</td></tr>
+</tbody>
+</table>
+</div>
+<p>Defaults: every rule is <code>warn</code>, except <code>undocumented-exception</code>,
+<code>unknown-rule</code> and <code>syntax-error</code>, which are <code>error</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="test-code"><a class="header" href="#test-code">Test code</a></h1>
+<p>An <code>unwrap</code> in a test is the assertion. A <code>MockClock</code> under <code>#[cfg(test)]</code>
+is exactly the injectable the testing article asks for. Test code answers to
+a different standard, and rabot knows where it is.</p>
+<h2 id="what-counts-as-test-code"><a class="header" href="#what-counts-as-test-code">What counts as test code</a></h2>
+<ul>
+<li>any item or impl item under <code>#[cfg(test)]</code>, or a <code>cfg</code> that mentions
+<code>test</code> (<code>#[cfg(any(test, feature = "test-utils"))]</code>)</li>
+<li><code>#[test]</code>, <code>#[tokio::test]</code>, <code>#[rstest]</code> and <code>#[bench]</code> functions</li>
+<li>whole files under <code>tests/</code>, <code>benches/</code> or <code>examples/</code></li>
+</ul>
+<h2 id="what-is-relaxed-there"><a class="header" href="#what-is-relaxed-there">What is relaxed there</a></h2>
+<p>The domain rules: <code>panic-in-production</code>, <code>swallowed-error</code>, <code>dropped-error-context</code>,
+<code>untyped-error</code>, <code>boolean-validation</code>, <code>ambient-time</code>, <code>ambient-randomness</code>,
+<code>ambient-config</code>,
+<code>primitive-soup</code>, <code>primitive-field</code>, <code>stringly-typed-field</code>,
+<code>bypassable-constructor</code>, <code>free-function</code>, <code>vague-type-name</code>,
+<code>orphan-module</code>, <code>oversized-impl</code>, <code>too-many-parameters</code>,
+<code>sectioned-function</code>.</p>
+<h2 id="what-is-not"><a class="header" href="#what-is-not">What is not</a></h2>
+<p>Sorting, the comment rules, <code>mock-usage</code>, <code>ignored-test</code> and
+<code>sleep-in-tests</code>. A test file is still code, and the last three are about
+tests.</p>
+<h2 id="tuning-it"><a class="header" href="#tuning-it">Tuning it</a></h2>
+<pre><code class="language-toml">[tests]
+relax = []                            # hold tests to the full standard
+relax = ["panic-in-production"]       # relax only this one
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="rules"><a class="header" href="#rules">Rules</a></h1>
+<p>Every rule is one principle from one article. <code>fmt</code> fixes the sorting
+family; <code>check</code> reports all of them. Levels are the defaults; every one can
+be changed in <code>rabot.toml</code>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Rule</th><th>Level</th><th>Fix</th><th>Principle</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="#sorted-fields">sorted-fields</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-variants">sorted-variants</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-impl-items">sorted-impl-items</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-trait-items">sorted-trait-items</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-struct-literal">sorted-struct-literal</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-struct-pattern">sorted-struct-pattern</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#sorted-derives">sorted-derives</a></td><td>warn</td><td>fmt</td><td>Sort everything</td></tr>
+<tr><td><a href="#primitive-soup">primitive-soup</a></td><td>warn</td><td></td><td>Wrap your primitives</td></tr>
+<tr><td><a href="#primitive-field">primitive-field</a></td><td>warn</td><td></td><td>Wrap your primitives</td></tr>
+<tr><td><a href="#stringly-typed-field">stringly-typed-field</a></td><td>warn</td><td></td><td>Wrap your primitives</td></tr>
+<tr><td><a href="#bypassable-constructor">bypassable-constructor</a></td><td>warn</td><td></td><td>Validate once, at construction</td></tr>
+<tr><td><a href="#boolean-validation">boolean-validation</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#free-function">free-function</a></td><td>warn</td><td></td><td>Put behavior on the type it belongs to</td></tr>
+<tr><td><a href="#vague-type-name">vague-type-name</a></td><td>warn</td><td></td><td>Name what you built</td></tr>
+<tr><td><a href="#orphan-module">orphan-module</a></td><td>warn</td><td></td><td>Name what you built</td></tr>
+<tr><td><a href="#oversized-impl">oversized-impl</a></td><td>warn</td><td></td><td>Obsess over your data structures</td></tr>
+<tr><td><a href="#too-many-parameters">too-many-parameters</a></td><td>warn</td><td></td><td>Obsess over your data structures</td></tr>
+<tr><td><a href="#panic-in-production">panic-in-production</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#untyped-error">untyped-error</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#swallowed-error">swallowed-error</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#dropped-error-context">dropped-error-context</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#escape-hatch-variant">escape-hatch-variant</a></td><td>warn</td><td></td><td>Treat errors as data</td></tr>
+<tr><td><a href="#global-state">global-state</a></td><td>warn</td><td></td><td>Dependencies in the signature</td></tr>
+<tr><td><a href="#ambient-config">ambient-config</a></td><td>warn</td><td></td><td>Dependencies in the signature</td></tr>
+<tr><td><a href="#mock-usage">mock-usage</a></td><td>warn</td><td></td><td>Real implementations, not mocks</td></tr>
+<tr><td><a href="#ignored-test">ignored-test</a></td><td>warn</td><td></td><td>Write down every exception</td></tr>
+<tr><td><a href="#ambient-time">ambient-time</a></td><td>warn</td><td></td><td>Make the clock injectable</td></tr>
+<tr><td><a href="#ambient-randomness">ambient-randomness</a></td><td>warn</td><td></td><td>Make the clock injectable</td></tr>
+<tr><td><a href="#sleep-in-tests">sleep-in-tests</a></td><td>warn</td><td></td><td>Fast and honest tests</td></tr>
+<tr><td><a href="#commented-out-code">commented-out-code</a></td><td>warn</td><td></td><td>Delete the comment, fix the code</td></tr>
+<tr><td><a href="#vague-todo">vague-todo</a></td><td>warn</td><td></td><td>Delete the comment, fix the code</td></tr>
+<tr><td><a href="#sectioned-function">sectioned-function</a></td><td>warn</td><td></td><td>Delete the comment, fix the code</td></tr>
+<tr><td><a href="#undocumented-exception">undocumented-exception</a></td><td>error</td><td></td><td>Write down every exception</td></tr>
+<tr><td><a href="#unknown-rule">unknown-rule</a></td><td>error</td><td></td><td>Write down every exception</td></tr>
+<tr><td><a href="#syntax-error">syntax-error</a></td><td>error</td><td></td><td></td></tr>
+</tbody>
+</table>
+</div>
+<p><code>rabot rules</code> prints the same table in the terminal; <code>rabot explain &lt;rule&gt;</code>
+prints a rule’s page.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorting"><a class="header" href="#sorting">Sorting</a></h1>
+<blockquote>
+<p>Sort your code alphabetically unless you have a documented reason not to.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<p>Every developer has a system for where a field goes. The system lives in
+their head, conflicts with everyone else’s, and is invisible to the next
+person. Six developers later the struct is sediment: layers, each one a
+person who did not want to argue. Alphabetical order needs no documentation,
+no politics and no archaeology. You do not scan; you binary-search.</p>
+<p>These seven rules are the formatter half of rabot. <code>rabot fmt</code> rewrites all
+of them in place; <code>rabot check</code> reports them.</p>
+<h2 id="what-is-sorted-and-how"><a class="header" href="#what-is-sorted-and-how">What is sorted, and how</a></h2>
+<p>Order is case-insensitive and natural, so <code>field2</code> comes before <code>field10</code>.
+Comments before a member move with it. Whitespace stays where it is, so a
+single-line list stays single-line and blank lines keep their place.</p>
+<h2 id="what-is-left-alone"><a class="header" href="#what-is-left-alone">What is left alone</a></h2>
+<p>Lists whose order is semantic are never touched: <code>#[repr]</code> types, enums with
+explicit discriminants, enums deriving <code>PartialOrd</code> or <code>Ord</code>, and struct
+literals whose initializers may have side effects (reported, not rewritten).
+Function parameters are never sorted; the article calls calling convention a
+real exception.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-fields"><a class="header" href="#sorted-fields">sorted-fields</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<blockquote>
+<p>Sort alphabetically. Every time. Object properties, table columns, class
+methods, enum values. Everything that forms a list.</p>
+</blockquote>
+<h2 id="what-it-checks"><a class="header" href="#what-it-checks">What it checks</a></h2>
+<p>Named fields of a struct, and of struct-like enum variants, are in
+alphabetical order (case-insensitive, <code>field2</code> before <code>field10</code>). Tuple
+fields are positional and never sorted. <code>#[repr(..)]</code> structs are skipped:
+their layout is the point.</p>
+<h2 id="dont"><a class="header" href="#dont">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct User {
+    id: String,           // primary key first, obviously
+    email: String,
+    name: String,
+    created_at: DateTime, // metadata at the end
+    updated_at: DateTime,
+    last_login_at: Option&lt;DateTime&gt;,
+    phone_number: Option&lt;String&gt;, // where does this go?
+}
+<span class="boring">}</span></code></pre>
+<p>The logic lives in one developer’s head. The next developer tacks
+<code>phone_number</code> at the bottom because that is the safe move. Six developers
+later, the struct is sediment.</p>
+<h2 id="do"><a class="header" href="#do">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct User {
+    created_at: DateTime,
+    email: String,
+    id: String,
+    last_login_at: Option&lt;DateTime&gt;,
+    name: String,
+    phone_number: Option&lt;String&gt;,
+    updated_at: DateTime,
+}
+<span class="boring">}</span></code></pre>
+<p>Nobody asks where <code>phone_number</code> goes. P comes after N, before U.</p>
+<p>If two fields belong together, say so with a type, not with proximity:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct UserName { first: String, last: String }
+struct UserContact { email: String, phone: String }
+struct User {
+    contact: UserContact,
+    name: UserName,
+}
+<span class="boring">}</span></code></pre>
+<h2 id="silence-it"><a class="header" href="#silence-it">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-fields) drop order matters: the guard must release before the pool
+struct Connection {
+    guard: MutexGuard&lt;'static, ()&gt;,
+    pool: Pool,
+}
+<span class="boring">}</span></code></pre>
+<p>Field order also decides <code>Debug</code> output and serde’s field order. Those are
+rarely a reason; when they are, write them down.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-variants"><a class="header" href="#sorted-variants">sorted-variants</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<blockquote>
+<p>One rule. Zero documentation required. Culturally neutral.</p>
+</blockquote>
+<h2 id="what-it-checks-1"><a class="header" href="#what-it-checks-1">What it checks</a></h2>
+<p>Enum variants are in alphabetical order. Enums whose variant order is
+semantic are skipped without a diagnostic: <code>#[repr(..)]</code> enums, enums with
+explicit discriminants (<code>A = 1</code>), and enums deriving <code>PartialOrd</code> or <code>Ord</code>,
+where declaration order is the comparison order.</p>
+<h2 id="dont-1"><a class="header" href="#dont-1">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum UserRole {
+    Member,
+    Admin,
+    Guest { since: u64, invited_by: String },
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-1"><a class="header" href="#do-1">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum UserRole {
+    Admin,
+    Guest { invited_by: String, since: u64 },
+    Member,
+}
+<span class="boring">}</span></code></pre>
+<p>Fields of a struct-like variant are sorted too (that is
+<a href="#sorted-fields">sorted-fields</a>).</p>
+<h2 id="silence-it-1"><a class="header" href="#silence-it-1">Silence it</a></h2>
+<p>An enum whose order carries meaning usually says so already: derive
+<code>PartialOrd</code> and rabot steps aside. When the meaning is not a derive, write
+it down:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-variants) matches the on-wire protocol numbering
+enum Opcode { Connect, Publish, Subscribe, Disconnect }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-impl-items"><a class="header" href="#sorted-impl-items">sorted-impl-items</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<blockquote>
+<p>Method ordering: constructor, then pub (alpha), then private (alpha).
+Fine. It’s documented at the top of the class. Within each section, still
+alphabetical.</p>
+</blockquote>
+<h2 id="what-it-checks-2"><a class="header" href="#what-it-checks-2">What it checks</a></h2>
+<p>Items inside an inherent <code>impl</code> follow the article’s documented exception:
+associated consts, associated types, constructors (associated functions
+returning <code>Self</code>), <code>pub</code> methods, then private methods, each group
+alphabetical. Inside <code>impl Trait for T</code>, consts, types, then fns.</p>
+<p>An impl containing a macro invocation is left alone.</p>
+<h2 id="dont-2"><a class="header" href="#dont-2">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl UserRepository {
+    fn validate(&amp;self) -&gt; bool { .. }
+    pub fn delete_user(&amp;self, id: &amp;UserId) { .. }
+    pub fn create_user(&amp;self, user: User) { .. }
+    pub fn new(db: Database) -&gt; Self { .. }
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-2"><a class="header" href="#do-2">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl UserRepository {
+    pub fn new(db: Database) -&gt; Self { .. }
+
+    pub fn create_user(&amp;self, user: User) { .. }
+    pub fn delete_user(&amp;self, id: &amp;UserId) { .. }
+
+    fn validate(&amp;self) -&gt; bool { .. }
+}
+<span class="boring">}</span></code></pre>
+<p>The constructor is where a reader starts. Public API next, in an order that
+needs no explaining. Implementation details last.</p>
+<h2 id="silence-it-2"><a class="header" href="#silence-it-2">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-impl-items) distance_to and is_near are inseparable: is_near wraps distance_to
+impl GpsCoordinates {
+    fn distance_to(&amp;self, other: &amp;Self) -&gt; Distance { .. }
+    fn is_near(&amp;self, other: &amp;Self, radius: Distance) -&gt; bool { .. }
+}
+<span class="boring">}</span></code></pre>
+<p>The article’s own example: one sentence says why they are together. If it
+takes more than one sentence, there is a separate type trying to escape.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-trait-items"><a class="header" href="#sorted-trait-items">sorted-trait-items</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<h2 id="what-it-checks-3"><a class="header" href="#what-it-checks-3">What it checks</a></h2>
+<p>Items in a <code>trait</code> definition: associated consts, then associated types,
+then functions, each group alphabetical. Trait impls follow the same order
+(see <a href="#sorted-impl-items">sorted-impl-items</a>), so a definition and its
+impls line up.</p>
+<h2 id="dont-3"><a class="header" href="#dont-3">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Persist {
+    fn save(&amp;self, store: &amp;Store) -&gt; Result&lt;(), SaveError&gt;;
+    type Error;
+    fn load(id: &amp;Id, store: &amp;Store) -&gt; Result&lt;Self, Self::Error&gt;;
+    const TABLE: &amp;'static str;
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-3"><a class="header" href="#do-3">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Persist {
+    const TABLE: &amp;'static str;
+    type Error;
+    fn load(id: &amp;Id, store: &amp;Store) -&gt; Result&lt;Self, Self::Error&gt;;
+    fn save(&amp;self, store: &amp;Store) -&gt; Result&lt;(), SaveError&gt;;
+}
+<span class="boring">}</span></code></pre>
+<h2 id="silence-it-3"><a class="header" href="#silence-it-3">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-trait-items) documented as a state machine: methods appear in call order
+trait Handshake { .. }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-struct-literal"><a class="header" href="#sorted-struct-literal">sorted-struct-literal</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> (when safe) · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<h2 id="what-it-checks-4"><a class="header" href="#what-it-checks-4">What it checks</a></h2>
+<p>The fields of a struct literal, <code>User { .. }</code>, are in alphabetical order,
+the same order as the definition. <code>..base</code> stays last.</p>
+<p>rabot only rewrites a literal when every initializer is plainly side-effect
+free: literals, paths, field accesses, references, <code>Some(..)</code>, <code>clone()</code>,
+<code>Default::default()</code> and the like. Initializers are evaluated in source
+order, so a literal with calls in it is reported and left for you to
+reorder by hand.</p>
+<h2 id="dont-4"><a class="header" href="#dont-4">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>User { role, name: input.name, id, email: input.email, created_at: now }
+<span class="boring">}</span></code></pre>
+<h2 id="do-4"><a class="header" href="#do-4">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>User { created_at: now, email: input.email, id, name: input.name, role }
+<span class="boring">}</span></code></pre>
+<p>Same order as the struct, every time it is built. A reviewer comparing the
+two never has to hunt.</p>
+<h2 id="silence-it-4"><a class="header" href="#silence-it-4">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-struct-literal) initializers must run in this order: the token is minted before the session
+Session { token: mint(&amp;mut rng), id: next_id(&amp;mut rng) }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-struct-pattern"><a class="header" href="#sorted-struct-pattern">sorted-struct-pattern</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<h2 id="what-it-checks-5"><a class="header" href="#what-it-checks-5">What it checks</a></h2>
+<p>Fields in a struct pattern, in <code>let</code> or in a <code>match</code> arm, are alphabetical.
+Patterns have no evaluation order, so this is always safe to rewrite. <code>..</code>
+stays last.</p>
+<h2 id="dont-5"><a class="header" href="#dont-5">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let User { name, email, .. } = user;
+match event {
+    Event::Moved { to, from, at } =&gt; ..,
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-5"><a class="header" href="#do-5">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let User { email, name, .. } = user;
+match event {
+    Event::Moved { at, from, to } =&gt; ..,
+}
+<span class="boring">}</span></code></pre>
+<h2 id="silence-it-5"><a class="header" href="#silence-it-5">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-struct-pattern) mirrors the wire order documented in RFC-12
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sorted-derives"><a class="header" href="#sorted-derives">sorted-derives</a></h1>
+<p><strong>Level</strong>: warn · <strong>Fixed by</strong> <code>rabot fmt</code> · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/sorting">Sorting</a></p>
+<h2 id="what-it-checks-6"><a class="header" href="#what-it-checks-6">What it checks</a></h2>
+<p>The list inside <code>#[derive(..)]</code> is alphabetical, with one documented
+exception: a derive follows the trait it extends. <code>Eq</code> comes right after
+<code>PartialEq</code>, <code>Ord</code> right after <code>PartialOrd</code>, <code>Copy</code> right after <code>Clone</code>.
+Reading <code>Eq, PartialEq</code> backwards is what alphabetical order alone would
+give you, and nobody writes it that way.</p>
+<h2 id="dont-6"><a class="header" href="#dont-6">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Serialize, Debug, Eq, Clone, PartialEq, Ord, PartialOrd, Copy, Hash)]
+struct UserId(String);
+<span class="boring">}</span></code></pre>
+<h2 id="do-6"><a class="header" href="#do-6">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+struct UserId(String);
+<span class="boring">}</span></code></pre>
+<h2 id="options"><a class="header" href="#options">Options</a></h2>
+<p>Pin derives to a position, in the manner of <code>cargo-sort-derives</code>: names
+before <code>"..."</code> come first in that order, names after it come last, and the
+rest sit in between under the rule above. Matching is on the last path
+segment, so <code>serde::Serialize</code> and <code>Serialize</code> are the same pin.</p>
+<pre><code class="language-toml">[sorting]
+derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
+</code></pre>
+<p>With that setting the example becomes
+<code>#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]</code>.</p>
+<h2 id="silence-it-6"><a class="header" href="#silence-it-6">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-derives) the proc macro must see Builder before Default
+#[derive(Builder, Default)]
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="primitives"><a class="header" href="#primitives">Primitives</a></h1>
+<blockquote>
+<p>Wrap every primitive that carries domain meaning in a dedicated type. Let
+the compiler enforce what your variable names only suggest.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/primitives">Primitives</a></p>
+<p>In 1999 NASA lost a $327 million orbiter to a <code>float</code>: one team measured in
+pound-force seconds, another in newton seconds, and the type system had
+nothing to say. Your bug will be smaller and the mechanism identical: a raw
+value that meant one thing was used where a raw value meaning another was
+expected, and nothing caught it.</p>
+<p>Four rules push the domain into the type system: two parameters of the same
+primitive type, a field whose name promises more than its type, a <code>String</code>
+that is really an enum, and a validating constructor with a back door.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="primitive-soup"><a class="header" href="#primitive-soup">primitive-soup</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/primitives">Primitives</a></p>
+<blockquote>
+<p>Three bugs. All type-safe. The compiler is happy. Your users are not.</p>
+</blockquote>
+<h2 id="what-it-checks-7"><a class="header" href="#what-it-checks-7">What it checks</a></h2>
+<p>A function takes two or more parameters of the same primitive type
+(<code>String</code>, <code>&amp;str</code>, integers, floats, <code>bool</code>, <code>Option&lt;..&gt;</code> of those). Two
+<code>String</code> parameters can be swapped at any call site and the program still
+compiles. Methods inside <code>impl Trait for T</code> are skipped: that signature is
+the trait’s.</p>
+<h2 id="dont-7"><a class="header" href="#dont-7">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn send_invoice(user_id: String, email: String, invoice_id: String) {
+    send_email(&amp;user_id, &amp;invoice_id); // swapped
+    log_access(&amp;invoice_id, &amp;email);   // wrong order
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-7"><a class="header" href="#do-7">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct UserId(String);
+struct Email(String);
+struct InvoiceId(String);
+
+fn send_invoice(user_id: UserId, email: Email, invoice_id: InvoiceId) {
+    send_email(&amp;user_id, &amp;invoice_id); // compile error
+    log_access(&amp;invoice_id, &amp;email);   // compile error
+}
+<span class="boring">}</span></code></pre>
+<p>You write the type once. The build catches the swap instead of the review.
+The newtype compiles to the same representation as the primitive; the cost
+is zero.</p>
+<h2 id="options-1"><a class="header" href="#options-1">Options</a></h2>
+<pre><code class="language-toml">[thresholds]
+primitive-soup = 2   # parameters of the same primitive type before it fires
+</code></pre>
+<h2 id="silence-it-7"><a class="header" href="#silence-it-7">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(primitive-soup) stateless math with no subject: min, max are both just numbers
+fn clamp(value: f64, min: f64, max: f64) -&gt; f64 { .. }
+<span class="boring">}</span></code></pre>
+<p>The article’s own exception: genuinely stateless math, where no parameter
+means anything on its own.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="primitive-field"><a class="header" href="#primitive-field">primitive-field</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/primitives">Primitives</a></p>
+<blockquote>
+<p>Data comes in as primitives. It leaves as domain types. It stays as domain
+types until it leaves the system. No exceptions.</p>
+</blockquote>
+<h2 id="what-it-checks-8"><a class="header" href="#what-it-checks-8">What it checks</a></h2>
+<p>A named struct field whose name says “domain concept” and whose type says
+“anything”: <code>email: String</code>, <code>user_id: u64</code>, <code>latitude: f64</code>,
+<code>price: Option&lt;f64&gt;</code>. The names come from a configurable list of words and
+<code>_</code>-suffixes; <code>bool</code> and <code>char</code> never count.</p>
+<p>Wire shapes are skipped. A struct named <code>*Request</code>, <code>*Response</code>, <code>*Row</code>,
+<code>*Dto</code> and so on is where primitives arrive, and parsing happens right after.</p>
+<h2 id="dont-8"><a class="header" href="#dont-8">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct User {
+    email: String,
+    id: String,
+    latitude: f64,
+}
+<span class="boring">}</span></code></pre>
+<p><code>email</code> accepts <code>"not an email"</code>. <code>id</code> accepts an order id. <code>latitude</code>
+accepts 400.</p>
+<h2 id="do-8"><a class="header" href="#do-8">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct User {
+    email: Email,
+    id: UserId,
+    latitude: Latitude,
+}
+
+impl Email {
+    fn parse(s: &amp;str) -&gt; Result&lt;Self, ValidationError&gt; { .. }
+}
+<span class="boring">}</span></code></pre>
+<p>Validate once, at construction, at the boundary. Everything past that line
+is typed and nobody checks again.</p>
+<h2 id="options-2"><a class="header" href="#options-2">Options</a></h2>
+<pre><code class="language-toml">[naming]
+domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password",
+                 "phone", "price", "token", "url"]
+boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
+                     "Request", "Response", "Row"]
+</code></pre>
+<h2 id="silence-it-8"><a class="header" href="#silence-it-8">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(primitive-field) mirrors the vendor's CSV columns; parsed into Reading right after
+struct RawReading { latitude: f64, longitude: f64 }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="stringly-typed-field"><a class="header" href="#stringly-typed-field">stringly-typed-field</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/primitives">Primitives</a></p>
+<blockquote>
+<p>The comment <code>// status: 'pending' | 'approved' | 'rejected'</code> is a <code>Status</code>
+enum that hasn’t been written yet. Write it. Delete the comment.</p>
+</blockquote>
+<h2 id="what-it-checks-9"><a class="header" href="#what-it-checks-9">What it checks</a></h2>
+<p>A named field called <code>status</code>, <code>state</code>, <code>kind</code>, <code>role</code>, <code>mode</code>, <code>level</code>,
+<code>phase</code>, <code>stage</code>, <code>category</code> or <code>type</code> whose type is <code>String</code>, <code>&amp;str</code> or
+<code>Option&lt;String&gt;</code>. A value with a handful of valid spellings is an enum, and
+the compiler checks every <code>match</code> on an enum.</p>
+<p>Wire shapes (<code>*Request</code>, <code>*Row</code>, …) are skipped, like
+<a href="#primitive-field">primitive-field</a>.</p>
+<h2 id="dont-9"><a class="header" href="#dont-9">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Order {
+    status: String, // "pending" | "approved" | "rejected"
+}
+
+if order.status == "aproved" { ship(order) } // never ships
+<span class="boring">}</span></code></pre>
+<h2 id="do-9"><a class="header" href="#do-9">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum OrderStatus { Approved, Pending, Rejected }
+
+struct Order {
+    status: OrderStatus,
+}
+
+match order.status {
+    OrderStatus::Approved =&gt; ship(order),
+    OrderStatus::Pending | OrderStatus::Rejected =&gt; {}
+}
+<span class="boring">}</span></code></pre>
+<p>Parse the string once, where it enters. A typo is now a compile error, and
+adding a variant makes every <code>match</code> that forgot it fail to build.</p>
+<h2 id="options-3"><a class="header" href="#options-3">Options</a></h2>
+<pre><code class="language-toml">[naming]
+enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage", "state", "status"]
+</code></pre>
+<h2 id="silence-it-9"><a class="header" href="#silence-it-9">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(stringly-typed-field) free-form user label, not a closed set
+struct Tag { kind: String }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="bypassable-constructor"><a class="header" href="#bypassable-constructor">bypassable-constructor</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/primitives">Primitives</a></p>
+<blockquote>
+<p>The invariant lives in the type. It cannot be violated without going
+through the constructor. The constructor rejects violations.</p>
+</blockquote>
+<h2 id="what-it-checks-10"><a class="header" href="#what-it-checks-10">What it checks</a></h2>
+<p>A single-field tuple struct with a <code>pub</code> field, in the same file as an
+associated function that returns <code>Result&lt;Self, _&gt;</code> or <code>Option&lt;Self&gt;</code>. The
+constructor can say no; the <code>pub</code> field lets anyone build the value without
+asking.</p>
+<h2 id="dont-10"><a class="header" href="#dont-10">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Percentage(pub f64);
+
+impl Percentage {
+    pub fn new(n: f64) -&gt; Result&lt;Self, ValidationError&gt; {
+        if !(0.0..=100.0).contains(&amp;n) { return Err(ValidationError::OutOfRange(n)); }
+        Ok(Self(n))
+    }
+}
+
+let discount = Percentage(250.0); // never went through the door
+<span class="boring">}</span></code></pre>
+<h2 id="do-10"><a class="header" href="#do-10">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct Percentage(f64);
+
+impl Percentage {
+    pub fn new(n: f64) -&gt; Result&lt;Self, ValidationError&gt; { .. }
+
+    pub fn value(&amp;self) -&gt; f64 {
+        self.0
+    }
+}
+<span class="boring">}</span></code></pre>
+<p>One way in. Every <code>Percentage</code> in the program has been checked, by
+construction, and no function that receives one has to check again.</p>
+<h2 id="silence-it-10"><a class="header" href="#silence-it-10">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(bypassable-constructor) any f64 is a valid Meters; `parse` only exists for the text form
+pub struct Meters(pub f64);
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="boolean-validation"><a class="header" href="#boolean-validation">boolean-validation</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>Your type signatures are lying to you.</p>
+</blockquote>
+<h2 id="what-it-checks-11"><a class="header" href="#what-it-checks-11">What it checks</a></h2>
+<p>A function named <code>validate_*</code>, <code>verify_*</code> or <code>is_valid*</code> that returns
+<code>bool</code>. Plain predicates (<code>is_empty</code>, <code>check_flag</code>) are not validation and
+are left alone. Validation has a reason to say no, and <code>false</code> cannot carry
+it.</p>
+<h2 id="dont-11"><a class="header" href="#dont-11">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn validate_email(s: &amp;str) -&gt; bool {
+    s.contains('@') &amp;&amp; !s.starts_with('@')
+}
+
+if !validate_email(&amp;input) {
+    return Err(ApiError::Invalid("email".into())); // which rule? the user has to guess
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-11"><a class="header" href="#do-11">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum EmailError { MissingAt, MissingLocalPart }
+
+impl Email {
+    fn parse(s: &amp;str) -&gt; Result&lt;Self, EmailError&gt; {
+        if !s.contains('@') { return Err(EmailError::MissingAt); }
+        if s.starts_with('@') { return Err(EmailError::MissingLocalPart); }
+        Ok(Email(s.to_lowercase()))
+    }
+}
+<span class="boring">}</span></code></pre>
+<p>The reason travels with the failure, and the success is a type: nothing
+past this line checks the email again.</p>
+<h2 id="silence-it-11"><a class="header" href="#silence-it-11">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(boolean-validation) a pure predicate used in a filter; there is no caller to inform
+fn is_valid_utf8(bytes: &amp;[u8]) -&gt; bool { .. }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="structs-and-method-ownership"><a class="header" href="#structs-and-method-ownership">Structs and method ownership</a></h1>
+<blockquote>
+<p>Obsess over your data structures, not your algorithms. Put behavior on the
+type it belongs to. Repository, Handler, and Service are names for
+decisions you haven’t made yet.</p>
+</blockquote>
+<p>Articles: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/structs">Structs</a>,
+<a href="https://almaju.github.io/blog/docs/fundamentals/modeling/method-ownership">Method Ownership</a></p>
+<p>You use <code>HashMap</code> every day without caring about its bucket layout. Your job
+is to build the same thing for your domain: a <code>GpsCoordinates</code> with a
+<code>distance_to</code>, not twelve copies of the Haversine formula with four <code>f64</code>
+parameters each. Every function in <code>utils.rs</code> is a method on a type that
+does not exist yet, and every <code>UserService</code> is a place where the same rule
+gets implemented twice.</p>
+<p>Five rules: free functions that belong on a type, names that dodge a
+decision, drawer modules, impls that are three types in a trenchcoat, and
+parameter lists that are a struct waiting to be named.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="free-function"><a class="header" href="#free-function">free-function</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/method-ownership">Method Ownership</a></p>
+<blockquote>
+<p>A free function almost always has a home. Either in its return type or
+its primary parameter.</p>
+</blockquote>
+<h2 id="what-it-checks-12"><a class="header" href="#what-it-checks-12">What it checks</a></h2>
+<p>A free function (not in an <code>impl</code>) whose first parameter is one of your own
+types, or which returns one of your own types. <code>main</code>, <code>extern</code> functions
+and generic parameters are excluded.</p>
+<h2 id="dont-12"><a class="header" href="#dont-12">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn ban(user: &amp;mut User) { .. }
+fn parse_url(s: &amp;str) -&gt; Result&lt;Url, ParseError&gt; { .. }
+fn format_user(user: &amp;User) -&gt; String { .. }
+<span class="boring">}</span></code></pre>
+<p>Six months later somebody who could not find <code>ban</code> adds a second one on
+<code>UserService</code>. Now there are two, and one is wrong.</p>
+<h2 id="do-12"><a class="header" href="#do-12">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl User {
+    fn ban(&amp;mut self) { .. }
+    fn display_name(&amp;self) -&gt; String { .. }
+}
+
+impl Url {
+    fn parse(s: &amp;str) -&gt; Result&lt;Self, ParseError&gt; { .. }
+}
+<span class="boring">}</span></code></pre>
+<p><code>user.ban()</code>. <code>Url::parse(s)</code>. One place to look, one place to add logic,
+and the compiler knows the method exists so nobody writes it twice.</p>
+<h2 id="silence-it-12"><a class="header" href="#silence-it-12">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(free-function) spans two types and belongs to neither: the transaction orchestrates both
+fn commit(store: &amp;Store, orders: &amp;[Order]) -&gt; Result&lt;(), CommitError&gt; { .. }
+<span class="boring">}</span></code></pre>
+<p>The article’s exceptions: stateless math (<code>clamp</code>), top-level orchestration
+(<code>App</code>), and operations that genuinely belong to a third thing.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vague-type-name"><a class="header" href="#vague-type-name">vague-type-name</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/method-ownership">Method Ownership</a></p>
+<blockquote>
+<p>When you need a word like “Manager” or “Service” to explain what your code
+does, you’re admitting you don’t know what your code does.</p>
+</blockquote>
+<h2 id="what-it-checks-13"><a class="header" href="#what-it-checks-13">What it checks</a></h2>
+<p>A struct, enum, trait or type alias whose name ends in <code>Service</code>, <code>Manager</code>,
+<code>Handler</code>, <code>Controller</code>, <code>Repository</code>, <code>Coordinator</code>, <code>Processor</code>,
+<code>Helper</code>, <code>UseCase</code>, <code>Util</code> or <code>Utils</code>. The suffix must be a whole word:
+<code>Chandler</code> is fine.</p>
+<h2 id="dont-13"><a class="header" href="#dont-13">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct UserService { db: Database }
+struct UserRepository { db: Database }
+struct UserManager { .. } // added six months ago; nobody knows why
+<span class="boring">}</span></code></pre>
+<p>You need to ban a user. Which one owns it? You pick one, ship it, and eight
+months later there are two <code>ban_user</code>s.</p>
+<h2 id="do-13"><a class="header" href="#do-13">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct User { .. }
+struct Store { .. }
+
+impl User {
+    fn ban(self) -&gt; Self { .. }
+    async fn save(&amp;self, store: &amp;Store) -&gt; Result&lt;(), SaveError&gt; { .. }
+}
+<span class="boring">}</span></code></pre>
+<p>Tell a colleague what you shipped: “the API and the todos”. Those are the
+structs. <code>TodoController</code> is a name from a tutorial.</p>
+<h2 id="options-4"><a class="header" href="#options-4">Options</a></h2>
+<pre><code class="language-toml">[naming]
+vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
+                  "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]
+</code></pre>
+<h2 id="silence-it-13"><a class="header" href="#silence-it-13">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(vague-type-name) implements the DDD Repository contract: the domain never sees SQL
+struct OrderRepository { .. }
+<span class="boring">}</span></code></pre>
+<p>If you are genuinely implementing the pattern, own it. Write down why.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="orphan-module"><a class="header" href="#orphan-module">orphan-module</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/structs">Structs</a></p>
+<blockquote>
+<p>Every function in your utils file is a method on a type that doesn’t exist
+yet. The type is there. You just haven’t named it.</p>
+</blockquote>
+<h2 id="what-it-checks-14"><a class="header" href="#what-it-checks-14">What it checks</a></h2>
+<p>A module named <code>utils</code>, <code>util</code>, <code>helpers</code>, <code>helper</code>, <code>common</code> or <code>misc</code>,
+whether declared inline or as <code>mod utils;</code>.</p>
+<h2 id="dont-14"><a class="header" href="#dont-14">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// utils.rs
+pub fn calculate_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -&gt; f64 { .. }
+pub fn format_coordinates(lat: f64, lon: f64) -&gt; String { .. }
+pub fn validate_lat_lon(lat: f64, lon: f64) -&gt; bool { .. }
+<span class="boring">}</span></code></pre>
+<p>It starts with one function that has no obvious home. Then fifteen. Then it
+is 800 lines and nobody can say what it is about, because it is not about
+anything. It is a drawer.</p>
+<h2 id="do-14"><a class="header" href="#do-14">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// gps_coordinates.rs
+struct GpsCoordinates { latitude: f64, longitude: f64 }
+
+impl GpsCoordinates {
+    fn distance_to(&amp;self, other: &amp;Self) -&gt; Distance { .. }
+    fn display(&amp;self) -&gt; String { .. }
+    fn parse(lat: f64, lon: f64) -&gt; Result&lt;Self, InvalidCoordinates&gt; { .. }
+}
+<span class="boring">}</span></code></pre>
+<p>Five functions that share three parameters are a struct. Name it and the
+orphans find their home.</p>
+<h2 id="options-5"><a class="header" href="#options-5">Options</a></h2>
+<pre><code class="language-toml">[naming]
+orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
+</code></pre>
+<h2 id="silence-it-14"><a class="header" href="#silence-it-14">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(orphan-module) test support only: builders and fixtures for the integration suite
+mod helpers;
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="oversized-impl"><a class="header" href="#oversized-impl">oversized-impl</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/structs">Structs</a></p>
+<blockquote>
+<p>A struct with 25 methods is usually three structs that haven’t been
+separated yet.</p>
+</blockquote>
+<h2 id="what-it-checks-15"><a class="header" href="#what-it-checks-15">What it checks</a></h2>
+<p>The inherent impls of one type, in one file, hold more than 20 methods.</p>
+<h2 id="dont-15"><a class="header" href="#dont-15">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl User {
+    fn ban(..) { .. }
+    fn charge(..) { .. }
+    fn invoice(..) { .. }
+    fn notify(..) { .. }
+    fn unsubscribe(..) { .. }
+    // ... 22 more
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-15"><a class="header" href="#do-15">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl User { fn ban(..) { .. } .. }
+impl BillingProfile { fn charge(..) { .. } fn invoice(..) { .. } .. }
+impl NotificationSettings { fn notify(..) { .. } fn unsubscribe(..) { .. } .. }
+<span class="boring">}</span></code></pre>
+<p>Ask which methods operate on a subset of the fields. That subset is its own
+struct, with five methods that actually belong to it.</p>
+<h2 id="options-6"><a class="header" href="#options-6">Options</a></h2>
+<pre><code class="language-toml">[thresholds]
+oversized-impl = 20
+</code></pre>
+<h2 id="silence-it-15"><a class="header" href="#silence-it-15">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(oversized-impl) builder: one method per option is the whole point
+impl CommandBuilder { .. }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="too-many-parameters"><a class="header" href="#too-many-parameters">too-many-parameters</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/structs">Structs</a></p>
+<blockquote>
+<p>The signal that you need a struct: you’re passing the same three parameters
+to five different functions. Those parameters are trying to tell you
+something.</p>
+</blockquote>
+<h2 id="what-it-checks-16"><a class="header" href="#what-it-checks-16">What it checks</a></h2>
+<p>A function or method takes more than 7 parameters (<code>self</code> not counted).
+Methods inside <code>impl Trait for T</code> are skipped.</p>
+<h2 id="dont-16"><a class="header" href="#dont-16">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn render(title: &amp;str, width: u32, height: u32, dpi: u32, margin: u32,
+          font: &amp;Font, color: Color, background: Color) -&gt; Image { .. }
+<span class="boring">}</span></code></pre>
+<h2 id="do-16"><a class="header" href="#do-16">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Canvas { dpi: u32, height: u32, margin: u32, width: u32 }
+struct Style { background: Color, color: Color, font: Font }
+
+fn render(title: &amp;str, canvas: &amp;Canvas, style: &amp;Style) -&gt; Image { .. }
+<span class="boring">}</span></code></pre>
+<p>Parameters that travel together are a struct waiting to be named. Once
+named, they get a home for the logic that was scattered across every
+caller.</p>
+<h2 id="options-7"><a class="header" href="#options-7">Options</a></h2>
+<pre><code class="language-toml">[thresholds]
+too-many-parameters = 7
+</code></pre>
+<h2 id="silence-it-16"><a class="header" href="#silence-it-16">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(too-many-parameters) mirrors the C ABI of libfoo_render exactly
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="errors"><a class="header" href="#errors">Errors</a></h1>
+<blockquote>
+<p>Handle errors like any other value in your program. Every operation that
+can fail returns a discriminated union. No throws. No panics. Just honest
+return values that force you to confront reality.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<p>It is 3am and something between the request and the response is swallowing
+an error. Six functions. Three nested catch blocks. Forty minutes of reading.
+The problem started when somebody wrote a signature that promised a value and
+could not keep the promise.</p>
+<p>Three rules: panics in code that could have returned a <code>Result</code>, error types
+that erase what went wrong, and the silent catch.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="panic-in-production"><a class="header" href="#panic-in-production">panic-in-production</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>Every <code>.unwrap()</code> in production is a bet that this particular call site
+will never fail. You are wrong about that bet more often than you think,
+and you find out at the worst possible time.</p>
+</blockquote>
+<h2 id="what-it-checks-17"><a class="header" href="#what-it-checks-17">What it checks</a></h2>
+<p><code>.unwrap()</code>, <code>.expect()</code>, <code>.unwrap_err()</code>, <code>.expect_err()</code>, <code>panic!</code>,
+<code>unreachable!</code>, <code>todo!</code> and <code>unimplemented!</code> outside the two places the
+article allows: <code>fn main</code>, where a missing config file may legitimately
+abort, and test code (see <a href="#test-code">Test code</a>).</p>
+<h2 id="dont-17"><a class="header" href="#dont-17">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get_user(id: &amp;UserId, db: &amp;Database) -&gt; User {
+    db.query("SELECT ...", id).unwrap()
+}
+<span class="boring">}</span></code></pre>
+<p>The signature promises a <code>User</code>. It cannot keep that promise, and the caller
+has no way to know.</p>
+<h2 id="do-17"><a class="header" href="#do-17">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn get_user(id: &amp;UserId, db: &amp;Database) -&gt; Result&lt;User, NotFoundError&gt; {
+    db.query("SELECT ...", id).ok_or(NotFoundError { user_id: id.clone() })
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust">// Startup: the program cannot run without these. Panicking is honest here.
+fn main() {
+    let config = load_config().expect("config file required for startup");
+}</code></pre>
+<h2 id="silence-it-17"><a class="header" href="#silence-it-17">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let first = items.first().unwrap(); // rabot: allow(panic-in-production) `items` was checked non-empty two lines up
+<span class="boring">}</span></code></pre>
+<p>An invariant that proves programmer error is the article’s other exception.
+Say which invariant.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="untyped-error"><a class="header" href="#untyped-error">untyped-error</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>With exceptions, you catch <code>Error</code> and guess. With typed errors, you match
+the variant and act. The difference is whether your recovery logic is a
+strategy or a prayer.</p>
+</blockquote>
+<h2 id="what-it-checks-18"><a class="header" href="#what-it-checks-18">What it checks</a></h2>
+<p>A function returns <code>Box&lt;dyn Error&gt;</code>, <code>anyhow::Result</code>/<code>anyhow::Error</code>,
+<code>eyre</code>, or <code>Result&lt;T, String&gt;</code> / <code>Result&lt;T, &amp;str&gt;</code>. <code>fn main</code> and trait
+impls are skipped: <code>main</code> may bubble anything, and <code>Error::source</code> is std’s
+signature, not yours.</p>
+<h2 id="dont-18"><a class="header" href="#dont-18">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn fetch(url: &amp;Url) -&gt; Result&lt;Response, Box&lt;dyn Error&gt;&gt; { .. }
+fn parse(input: &amp;str) -&gt; Result&lt;Config, String&gt; { .. }
+<span class="boring">}</span></code></pre>
+<p>The caller can display the error. It cannot retry on a timeout, refresh on
+an expired token, and give up on a validation failure, because it cannot
+tell them apart.</p>
+<h2 id="do-18"><a class="header" href="#do-18">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum FetchError {
+    Auth { refresh_token: RefreshToken },
+    Network { retry_after: Duration },
+    RateLimited { retry_after: Duration },
+    Validation(ValidationError),
+}
+
+fn fetch(url: &amp;Url) -&gt; Result&lt;Response, FetchError&gt; { .. }
+
+match error {
+    FetchError::Network { retry_after } | FetchError::RateLimited { retry_after } =&gt; sleep(retry_after),
+    FetchError::Auth { refresh_token } =&gt; refresh(refresh_token)?,
+    FetchError::Validation(_) =&gt; return Err(error),
+}
+<span class="boring">}</span></code></pre>
+<p>Granular enough to make different decisions. If two failures get identical
+handling, they are one variant.</p>
+<h2 id="silence-it-18"><a class="header" href="#silence-it-18">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(untyped-error) CLI entry point: every failure ends in the same exit code and message
+fn run(args: Args) -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; { .. }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="swallowed-error"><a class="header" href="#swallowed-error">swallowed-error</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>Every silent catch is a future 3am.</p>
+</blockquote>
+<h2 id="what-it-checks-19"><a class="header" href="#what-it-checks-19">What it checks</a></h2>
+<p>Three shapes that make a failure disappear:</p>
+<ul>
+<li>an empty <code>Err</code> arm: <code>Err(_) =&gt; {}</code></li>
+<li>an empty <code>if let Err(..) = .. {}</code></li>
+<li><code>.ok();</code> as a statement, which converts the <code>Result</code> to an <code>Option</code> and
+throws it away</li>
+</ul>
+<h2 id="dont-19"><a class="header" href="#dont-19">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>match cache.invalidate(&amp;key) {
+    Ok(()) =&gt; {}
+    Err(_) =&gt; {} // shouldn't happen
+}
+
+std::fs::remove_file(&amp;tmp).ok();
+<span class="boring">}</span></code></pre>
+<p>It happened. The comment lied. Somebody will spend four hours finding which
+branch swallowed it.</p>
+<h2 id="do-19"><a class="header" href="#do-19">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>if let Err(error) = cache.invalidate(&amp;key) {
+    warn!(%key, %error, "cache entry survives invalidation; serving stale until TTL");
+}
+
+std::fs::remove_file(&amp;tmp)?;
+<span class="boring">}</span></code></pre>
+<p>Propagate it, or log it with the context the reader at 3am needs. Either
+way, the failure leaves a trace.</p>
+<h2 id="silence-it-19"><a class="header" href="#silence-it-19">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(swallowed-error) best-effort cleanup of a temp file; the OS reclaims it anyway
+std::fs::remove_file(&amp;tmp).ok();
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="dropped-error-context"><a class="header" href="#dropped-error-context">dropped-error-context</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>Every nested level loses context. Every silent catch is a future 3am.</p>
+</blockquote>
+<h2 id="what-it-checks-20"><a class="header" href="#what-it-checks-20">What it checks</a></h2>
+<p><code>.map_err(|_| ..)</code>, <code>.or_else(|_| ..)</code> or <code>.unwrap_or_else(|_| ..)</code> whose
+closure ignores the error it receives: a parameter named <code>_</code> or starting
+with <code>_</code>. The original failure, the one with the file name and the OS
+message, is gone before anyone reads it.</p>
+<h2 id="dont-20"><a class="header" href="#dont-20">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let config = std::fs::read_to_string(path).map_err(|_| ConfigError::Unreadable)?;
+<span class="boring">}</span></code></pre>
+<p>“Config unreadable.” Which file? Permission denied, or not found, or a
+directory? The error that knew is gone.</p>
+<h2 id="do-20"><a class="header" href="#do-20">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum ConfigError {
+    Unreadable { path: PathBuf, #[source] source: std::io::Error },
+}
+
+let config = std::fs::read_to_string(&amp;path)
+    .map_err(|source| ConfigError::Unreadable { path: path.clone(), source })?;
+<span class="boring">}</span></code></pre>
+<p>Or with <code>thiserror</code>, <code>#[from]</code> and <code>?</code> do it without a closure at all. The
+caller matches on your variant; the log walks <code>source()</code> down to the OS.</p>
+<h2 id="silence-it-20"><a class="header" href="#silence-it-20">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(dropped-error-context) the only possible failure is Utf8; the position is what matters
+let name = String::from_utf8(bytes).map_err(|_| NameError::NotUtf8 { offset })?;
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="escape-hatch-variant"><a class="header" href="#escape-hatch-variant">escape-hatch-variant</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/modeling/errors">Errors</a></p>
+<blockquote>
+<p>Granular enough to make different decisions. If two errors require
+identical handling, they’re the same type. If they require different
+recovery strategies, split them.</p>
+</blockquote>
+<h2 id="what-it-checks-21"><a class="header" href="#what-it-checks-21">What it checks</a></h2>
+<p>An enum whose name ends in <code>Error</code> with a variant named <code>Other</code>, <code>Unknown</code>,
+<code>Custom</code>, <code>Internal</code>, <code>Generic</code>, <code>Misc</code> or <code>Unexpected</code>, holding a <code>String</code>,
+a boxed error, or nothing.</p>
+<h2 id="dont-21"><a class="header" href="#dont-21">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum PaymentError {
+    CardDeclined { reason: DeclineReason },
+    Other(String),
+}
+<span class="boring">}</span></code></pre>
+<p>Six months later <code>Other</code> carries network timeouts, a provider outage, a
+currency mismatch and a typo. The retry logic matches on <code>CardDeclined</code> and
+guesses at everything else.</p>
+<h2 id="do-21"><a class="header" href="#do-21">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>enum PaymentError {
+    CardDeclined { reason: DeclineReason },
+    CurrencyMismatch { expected: Currency, got: Currency },
+    Provider { retry_after: Option&lt;Duration&gt;, #[source] source: ProviderError },
+}
+<span class="boring">}</span></code></pre>
+<p>Each variant is a decision the caller can make. Adding a failure mode means
+adding a variant, and the compiler finds every <code>match</code> that has to decide
+about it.</p>
+<h2 id="options-8"><a class="header" href="#options-8">Options</a></h2>
+<pre><code class="language-toml">[naming]
+escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other", "Unexpected", "Unknown"]
+</code></pre>
+<h2 id="silence-it-21"><a class="header" href="#silence-it-21">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(escape-hatch-variant) FFI boundary: the C library reports free-form strings we cannot classify
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h1>
+<blockquote>
+<p>Every function and class should declare exactly what it needs. No
+singletons. No magic injection. If it’s not in the signature, it shouldn’t
+exist.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies">Dependencies</a></p>
+<p>A global is a dependency hidden from every signature that uses it. You find
+out about it when two tests mutate it in parallel, or when you try to move
+the code and discover what it secretly needed. The compiler cannot help
+because the dependency is invisible.</p>
+<p>One rule, for the one thing a linter can see: mutable global state.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="global-state"><a class="header" href="#global-state">global-state</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies">Dependencies</a></p>
+<blockquote>
+<p>Invisible dependencies are the cockroaches of software architecture:
+everywhere, impossible to count, surviving every refactor.</p>
+</blockquote>
+<h2 id="what-it-checks-22"><a class="header" href="#what-it-checks-22">What it checks</a></h2>
+<p>A <code>static</code> with interior mutability (<code>Mutex</code>, <code>RwLock</code>, <code>OnceLock</code>,
+<code>OnceCell</code>, <code>LazyLock</code>, <code>Cell</code>, <code>RefCell</code>, atomics), <code>static mut</code>, or a
+<code>lazy_static!</code> block. Statics whose name contains <code>LOG</code> are exempt by
+default: a logger is infrastructure nobody swaps in tests.</p>
+<h2 id="dont-22"><a class="header" href="#dont-22">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>static DATABASE: OnceLock&lt;Database&gt; = OnceLock::new();
+
+impl User {
+    async fn load(id: &amp;UserId) -&gt; Result&lt;User, LoadError&gt; {
+        DATABASE.get().unwrap().query(..).await // hidden dependency
+    }
+}
+<span class="boring">}</span></code></pre>
+<p>Zero constructor parameters. Looks simple. Until two tests run in parallel
+against the same global, or you need to point it at another database.</p>
+<h2 id="do-22"><a class="header" href="#do-22">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct Users { db: Database }
+
+impl Users {
+    async fn load(&amp;self, id: &amp;UserId) -&gt; Result&lt;User, LoadError&gt; {
+        self.db.query(..).await
+    }
+}
+
+// main.rs: every dependency constructed in one place
+let db = Database::connect(&amp;config.db_url).await?;
+let users = Users { db: db.clone() };
+<span class="boring">}</span></code></pre>
+<p>Exactly as complex as it actually is, and checked at compile time.</p>
+<h2 id="options-9"><a class="header" href="#options-9">Options</a></h2>
+<pre><code class="language-toml">[global-state]
+allowed-names = ["LOG"]   # substring match, case-insensitive
+</code></pre>
+<h2 id="silence-it-22"><a class="header" href="#silence-it-22">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(global-state) compiled-once regex; a pure value, never swapped
+static EMAIL: LazyLock&lt;Regex&gt; = LazyLock::new(|| Regex::new(..).unwrap());
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ambient-config"><a class="header" href="#ambient-config">ambient-config</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies">Dependencies</a></p>
+<blockquote>
+<p>All dependencies get constructed in one place. One file. That’s it.</p>
+</blockquote>
+<h2 id="what-it-checks-23"><a class="header" href="#what-it-checks-23">What it checks</a></h2>
+<p><code>std::env::var</code>, <code>env::var_os</code> or <code>env::vars</code> outside <code>main</code> and outside
+functions and types that exist to read configuration (a name containing
+<code>config</code>, <code>settings</code> or <code>env</code>, such as <code>load_config</code> or
+<code>Config::from_env</code>).</p>
+<h2 id="dont-23"><a class="header" href="#dont-23">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>async fn start_server(app: App) -&gt; Result&lt;(), ServerError&gt; {
+    let port: u16 = std::env::var("PORT")?.parse()?;
+    app.listen(port).await
+}
+<span class="boring">}</span></code></pre>
+<p>The signature says this needs an <code>App</code>. It also needs <code>PORT</code>, and you find
+out when it is missing, at runtime, in the environment where it was not set.</p>
+<h2 id="do-23"><a class="header" href="#do-23">Do</a></h2>
+<pre class="playground"><code class="language-rust">struct Config { db_url: DatabaseUrl, port: Port }
+
+impl Config {
+    fn from_env() -&gt; Result&lt;Self, ConfigError&gt; { .. }
+}
+
+async fn start_server(app: App, port: Port) -&gt; Result&lt;(), ServerError&gt; {
+    app.listen(port).await
+}
+
+fn main() {
+    let config = Config::from_env().expect("configuration required for startup");
+    start_server(app, config.port)
+}</code></pre>
+<p>Read once, at the top, parsed into types. Everything below takes what it
+needs as a parameter, and a missing variable fails at startup instead of on
+the first request that reaches that code path.</p>
+<h2 id="silence-it-23"><a class="header" href="#silence-it-23">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(ambient-config) RUST_LOG is the logger's own contract, read by the logging crate
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="tests"><a class="header" href="#tests">Tests</a></h1>
+<blockquote>
+<p>Your tests are either fast or honest. Real in-memory implementations are
+both. Mocks are neither.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<p>Every test mocked <code>find_by_email</code> to return <code>None</code>, because that is what the
+assertion needed. The unique constraint fired in production. The mock did
+exactly what it was told; that is the problem. A <code>MemDatabase</code> that enforces
+the same constraints in a <code>HashMap</code> is fast, honest, and useful outside the
+test suite.</p>
+<p>Two rules: generated mocks, and tests skipped without a reason.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mock-usage"><a class="header" href="#mock-usage">mock-usage</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<blockquote>
+<p>Mocks test your assumptions. Real implementations test your code. Those
+are not the same test.</p>
+</blockquote>
+<h2 id="what-it-checks-24"><a class="header" href="#what-it-checks-24">What it checks</a></h2>
+<p><code>use mockall</code>, <code>faux</code>, <code>mry</code>, <code>unimock</code> or <code>mockall_double</code>; the
+<code>#[automock]</code> attribute; the <code>mock!</code> macro. This rule is about tests, so it
+is not relaxed in test code.</p>
+<h2 id="dont-24"><a class="header" href="#dont-24">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[automock]
+trait Database {
+    fn find_by_email(&amp;self, email: &amp;Email) -&gt; Option&lt;User&gt;;
+}
+
+let mut db = MockDatabase::new();
+db.expect_find_by_email().return_const(None); // "no duplicate, go ahead"
+<span class="boring">}</span></code></pre>
+<p>The unique constraint on <code>email</code> fires in production. The mock never knew
+what the database contained, because it was not a database.</p>
+<h2 id="do-24"><a class="header" href="#do-24">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct MemDatabase { users: Mutex&lt;HashMap&lt;UserId, User&gt;&gt; }
+
+impl Database for MemDatabase {
+    fn insert(&amp;self, user: NewUser) -&gt; Result&lt;User, DbError&gt; {
+        let mut users = self.users.lock()?;
+        if users.values().any(|u| u.email == user.email) {
+            return Err(DbError::UniqueViolation("email"));
+        }
+        ..
+    }
+}
+<span class="boring">}</span></code></pre>
+<p>Two hours once per dependency. It enforces the same constraints, runs in
+milliseconds, and earns its place: local dev, seeding, CI without Docker.</p>
+<h2 id="silence-it-24"><a class="header" href="#silence-it-24">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow-file(mock-usage) legacy suite, replaced by MemGateway under TEST-88
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ignored-test"><a class="header" href="#ignored-test">ignored-test</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<blockquote>
+<p>The week the senior engineer who understood the mock setup leaves the
+company and nobody knows why three tests are marked <code>.skip</code>.</p>
+</blockquote>
+<h2 id="what-it-checks-25"><a class="header" href="#what-it-checks-25">What it checks</a></h2>
+<p><code>#[ignore]</code> without a reason. <code>#[ignore = "..."]</code> is the documented
+exception and never fires.</p>
+<h2 id="dont-25"><a class="header" href="#dont-25">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[ignore]
+#[test]
+fn transfers_between_accounts() { .. }
+<span class="boring">}</span></code></pre>
+<h2 id="do-25"><a class="header" href="#do-25">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[ignore = "needs the payments sandbox; run nightly, see PAY-431"]
+#[test]
+fn transfers_between_accounts() { .. }
+<span class="boring">}</span></code></pre>
+<p>The reason says whether the test may run again, and who to ask.</p>
+<h2 id="silence-it-25"><a class="header" href="#silence-it-25">Silence it</a></h2>
+<p>Add the reason. That is the fix.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ambient-time"><a class="header" href="#ambient-time">ambient-time</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<blockquote>
+<p>Some things are genuinely hard to test: the clock, random number
+generators, external HTTP calls. The instinct is to mock them. The right
+move is to make them injectable.</p>
+</blockquote>
+<h2 id="what-it-checks-26"><a class="header" href="#what-it-checks-26">What it checks</a></h2>
+<p>A call to <code>SystemTime::now()</code>, <code>Instant::now()</code>, <code>Utc::now()</code>,
+<code>Local::now()</code>, <code>OffsetDateTime::now_utc()</code> or the like anywhere but <code>main</code>.
+The wall clock is a dependency, and this one is hidden from every signature
+that uses it.</p>
+<h2 id="dont-26"><a class="header" href="#dont-26">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl Session {
+    fn create(user_id: UserId) -&gt; Session {
+        let now = Utc::now();
+        Session { created_at: now, expires_at: now + Duration::hours(1), user_id }
+    }
+}
+<span class="boring">}</span></code></pre>
+<p>The test for “expires one hour after creation” has to compute the current
+hour, or sleep, or give up.</p>
+<h2 id="do-26"><a class="header" href="#do-26">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>trait Clock: Send + Sync {
+    fn now(&amp;self) -&gt; DateTime&lt;Utc&gt;;
+}
+
+struct Sessions&lt;C: Clock&gt; { clock: C }
+
+impl&lt;C: Clock&gt; Sessions&lt;C&gt; {
+    fn create(&amp;self, user_id: UserId) -&gt; Session {
+        let now = self.clock.now();
+        Session { created_at: now, expires_at: now + Duration::hours(1), user_id }
+    }
+}
+
+#[test]
+fn expires_one_hour_after_creation() {
+    let clock = FixedClock(Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0).unwrap());
+    let session = Sessions { clock }.create(user_id);
+    assert_eq!(session.expires_at.hour(), 13);
+}
+<span class="boring">}</span></code></pre>
+<p>The bar for injection: would it be useful outside tests? A <code>Clock</code> is. You
+freeze time in staging, simulate midnight rollover in a demo, replay a
+historical scenario.</p>
+<h2 id="silence-it-26"><a class="header" href="#silence-it-26">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let started = Instant::now(); // rabot: allow(ambient-time) request timing for the log line; nothing branches on it
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ambient-randomness"><a class="header" href="#ambient-randomness">ambient-randomness</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<h2 id="what-it-checks-27"><a class="header" href="#what-it-checks-27">What it checks</a></h2>
+<p><code>rand::random()</code>, <code>rand::thread_rng()</code>, <code>rand::rng()</code>, <code>StdRng::from_entropy()</code>
+and friends, anywhere but <code>main</code>. A global generator makes the code
+correct on average and impossible to replay when it is not.</p>
+<h2 id="dont-27"><a class="header" href="#dont-27">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn pick_winner(entries: &amp;[Entry]) -&gt; &amp;Entry {
+    &amp;entries[rand::thread_rng().gen_range(0..entries.len())]
+}
+<span class="boring">}</span></code></pre>
+<p>The bug report says “the same person won twice”. You cannot reproduce it.</p>
+<h2 id="do-27"><a class="header" href="#do-27">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn pick_winner&lt;'a&gt;(entries: &amp;'a [Entry], rng: &amp;mut impl Rng) -&gt; &amp;'a Entry {
+    &amp;entries[rng.gen_range(0..entries.len())]
+}
+
+// main: one generator, seeded once
+let mut rng = StdRng::from_entropy();
+
+// test: the same draw every time
+let mut rng = StdRng::seed_from_u64(42);
+<span class="boring">}</span></code></pre>
+<h2 id="silence-it-27"><a class="header" href="#silence-it-27">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(ambient-randomness) jitter on a retry delay; the exact value never matters
+let jitter = rand::random::&lt;u64&gt;() % 50;
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sleep-in-tests"><a class="header" href="#sleep-in-tests">sleep-in-tests</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/architecture/testing">Tests</a></p>
+<blockquote>
+<p>Developers who re-run flaky tests twice before investigating.</p>
+</blockquote>
+<h2 id="what-it-checks-28"><a class="header" href="#what-it-checks-28">What it checks</a></h2>
+<p><code>thread::sleep</code>, <code>tokio::time::sleep</code> or <code>task::sleep</code> inside test code.
+This rule fires only in tests; sleeping in production code is a different
+question.</p>
+<h2 id="dont-28"><a class="header" href="#dont-28">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[tokio::test]
+async fn delivers_the_event() {
+    bus.publish(event);
+    tokio::time::sleep(Duration::from_millis(50)).await; // "enough time"
+    assert_eq!(subscriber.received(), vec![event]);
+}
+<span class="boring">}</span></code></pre>
+<p>Fifty milliseconds is enough on your laptop. On a loaded CI runner it is
+not, once a week, and someone adds a zero.</p>
+<h2 id="do-28"><a class="header" href="#do-28">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[tokio::test]
+async fn delivers_the_event() {
+    bus.publish(event);
+    let received = subscriber.next().await; // waits for the event, not for time
+    assert_eq!(received, event);
+}
+<span class="boring">}</span></code></pre>
+<p>When the code under test measures time, inject the <a href="#ambient-time">clock</a>
+and advance it: <code>clock.advance(Duration::from_secs(3600))</code> is instant and
+exact.</p>
+<h2 id="silence-it-28"><a class="header" href="#silence-it-28">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sleep-in-tests) exercises the real timeout path against the in-process server
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="comments"><a class="header" href="#comments">Comments</a></h1>
+<blockquote>
+<p>Delete the comment. Fix the code.</p>
+</blockquote>
+<p>Article: <a href="https://almaju.github.io/blog/docs/fundamentals/style/comments">Comments</a></p>
+<p>A comment that explains what code does is a confession: the code had
+something to say and could not say it. Now there are two representations of
+the same thing, and they will drift. <code>// Get active users</code> still said so six
+months after the function started returning banned ones.</p>
+<p>Three rules for the comments a linter can recognise: code that was commented
+out instead of deleted, a <code>TODO</code> that says nothing, and a function narrated
+by section headers.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="commented-out-code"><a class="header" href="#commented-out-code">commented-out-code</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/comments">Comments</a></p>
+<blockquote>
+<p>You have git. There is no temporary.</p>
+</blockquote>
+<h2 id="what-it-checks-29"><a class="header" href="#what-it-checks-29">What it checks</a></h2>
+<p>A comment block that parses as Rust and carries syntax prose does not use
+(<code>;</code>, <code>{</code>, <code>()</code>, <code>=</code>, <code>::</code>, <code>-&gt;</code>). Doc comments are never checked; a comment
+can legitimately show code.</p>
+<h2 id="dont-29"><a class="header" href="#dont-29">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn total(items: &amp;[Item]) -&gt; Money {
+    // let discount = apply_coupon(&amp;items);
+    // items.iter().map(|i| i.price - discount).sum()
+    items.iter().map(|i| i.price).sum()
+}
+<span class="boring">}</span></code></pre>
+<p>It creates noise, confuses the reader about what runs, and never gets
+cleaned up.</p>
+<h2 id="do-29"><a class="header" href="#do-29">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn total(items: &amp;[Item]) -&gt; Money {
+    items.iter().map(|i| i.price).sum()
+}
+<span class="boring">}</span></code></pre>
+<p>If you need it back, <code>git log</code> exists. If you cannot find it there, you did
+not need it.</p>
+<h2 id="silence-it-29"><a class="header" href="#silence-it-29">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(commented-out-code) the two lines below are the shape of the RFC-12 payload, kept for reference
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vague-todo"><a class="header" href="#vague-todo">vague-todo</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/comments">Comments</a></p>
+<blockquote>
+<p>A TODO without context is noise with a timestamp. It will sit there for
+three years, mocking every developer who reads it.</p>
+</blockquote>
+<h2 id="what-it-checks-30"><a class="header" href="#what-it-checks-30">What it checks</a></h2>
+<p>A <code>TODO</code>, <code>FIXME</code>, <code>XXX</code> or <code>HACK</code> comment with fewer than 6 words after
+the marker and no reference (a ticket like <code>PERF-112</code> or <code>#4521</code>, or a URL).</p>
+<h2 id="dont-30"><a class="header" href="#dont-30">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// TODO: refactor this
+// FIXME
+<span class="boring">}</span></code></pre>
+<p>Refactor what? Why? When?</p>
+<h2 id="do-30"><a class="header" href="#do-30">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// TODO: this linear scan works at current scale (~500 users) but will
+// need an index once we hit the enterprise tier. See PERF-112.
+fn find_by_email(users: &amp;[User], email: &amp;Email) -&gt; Option&lt;&amp;User&gt; { .. }
+<span class="boring">}</span></code></pre>
+<p>A known tradeoff and a pointer to the follow-up. That is something the code
+cannot say.</p>
+<h2 id="options-10"><a class="header" href="#options-10">Options</a></h2>
+<pre><code class="language-toml">[thresholds]
+vague-todo-min-words = 6
+</code></pre>
+<h2 id="silence-it-30"><a class="header" href="#silence-it-30">Silence it</a></h2>
+<p>Write the sentence. If there is nothing to say, delete the TODO.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sectioned-function"><a class="header" href="#sectioned-function">sectioned-function</a></h1>
+<p><strong>Level</strong>: warn · <strong>Article</strong>: <a href="https://almaju.github.io/blog/docs/fundamentals/style/comments">Comments</a></p>
+<blockquote>
+<p>You have three functions trapped inside one. The comment is an informal
+table of contents for code that should have been split. The section
+headers become function names.</p>
+</blockquote>
+<h2 id="what-it-checks-31"><a class="header" href="#what-it-checks-31">What it checks</a></h2>
+<p>A function body containing 3 or more leading comment blocks (a comment on
+its own line, introducing the code below it). Trailing comments beside
+code, <code>TODO</code>/<code>FIXME</code>/<code>SAFETY</code> notes and ticket links never count.</p>
+<h2 id="dont-31"><a class="header" href="#dont-31">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn process(order: &amp;mut Order) -&gt; Result&lt;(), ProcessError&gt; {
+    // step 1: validate
+    if order.items.is_empty() { return Err(ProcessError::Empty); }
+    // step 2: transform
+    let total = order.items.iter().map(Item::price).sum();
+    // step 3: persist
+    store.save(order, total)
+}
+<span class="boring">}</span></code></pre>
+<h2 id="do-31"><a class="header" href="#do-31">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn process(order: &amp;mut Order) -&gt; Result&lt;(), ProcessError&gt; {
+    order.validate()?;
+    let total = order.total();
+    store.save(order, total)
+}
+<span class="boring">}</span></code></pre>
+<p>Each header became a name. The function reads as the summary the comments
+were trying to be, and each piece can be tested on its own.</p>
+<h2 id="options-11"><a class="header" href="#options-11">Options</a></h2>
+<pre><code class="language-toml">[thresholds]
+section-comments = 3
+</code></pre>
+<h2 id="silence-it-31"><a class="header" href="#silence-it-31">Silence it</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sectioned-function) the protocol handshake is documented step by step against RFC 6455 §4
+fn handshake(..) { .. }
+<span class="boring">}</span></code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="exceptions-1"><a class="header" href="#exceptions-1">Exceptions</a></h1>
+<blockquote>
+<p>The key: the exception is written somewhere. If it’s only in your head,
+it’s not an exception. It’s just chaos with better intentions.</p>
+</blockquote>
+<p>rabot’s own mechanism has rules too. An allow comment must carry a reason and
+name a rule that exists. And a file rabot cannot parse is reported rather
+than skipped, so a syntax error never silently turns a check off.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="undocumented-exception"><a class="header" href="#undocumented-exception">undocumented-exception</a></h1>
+<p><strong>Level</strong>: error</p>
+<blockquote>
+<p>You can break the rule. You must document the exception.</p>
+</blockquote>
+<h2 id="what-it-checks-32"><a class="header" href="#what-it-checks-32">What it checks</a></h2>
+<p>A <code>// rabot: allow(..)</code> or <code>// rabot: allow-file(..)</code> comment with nothing
+after the parenthesis.</p>
+<h2 id="dont-32"><a class="header" href="#dont-32">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-fields)
+struct Connection { guard: Guard, pool: Pool }
+<span class="boring">}</span></code></pre>
+<p>The comment silences nothing. It is reported as an error, and the rule it
+tried to allow still fires.</p>
+<h2 id="do-32"><a class="header" href="#do-32">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-fields) drop order matters: the guard must release before the pool
+struct Connection { guard: Guard, pool: Pool }
+<span class="boring">}</span></code></pre>
+<p>The sentence is the point. The next reader gets the reason instead of a
+mystery.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unknown-rule"><a class="header" href="#unknown-rule">unknown-rule</a></h1>
+<p><strong>Level</strong>: error</p>
+<h2 id="what-it-checks-33"><a class="header" href="#what-it-checks-33">What it checks</a></h2>
+<p>A <code>// rabot: allow(..)</code> comment naming a rule rabot does not have, an
+unknown directive after <code>rabot:</code>, or a missing closing parenthesis.</p>
+<h2 id="dont-33"><a class="header" href="#dont-33">Don’t</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sort-fields) drop order matters
+<span class="boring">}</span></code></pre>
+<p>A typo would otherwise be a silent no-op: the comment looks like an
+exception and does nothing.</p>
+<h2 id="do-33"><a class="header" href="#do-33">Do</a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// rabot: allow(sorted-fields) drop order matters
+<span class="boring">}</span></code></pre>
+<p><code>rabot rules</code> lists every name.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="syntax-error"><a class="header" href="#syntax-error">syntax-error</a></h1>
+<p><strong>Level</strong>: error</p>
+<h2 id="what-it-checks-34"><a class="header" href="#what-it-checks-34">What it checks</a></h2>
+<p>A file that does not parse as Rust. rabot reports it and moves on to the
+next file, so a broken file never silently disables checking, and never
+gets rewritten by <code>rabot fmt</code>.</p>
+<h2 id="what-to-do"><a class="header" href="#what-to-do">What to do</a></h2>
+<p>Fix the file; <code>cargo check</code> says where. If it is generated or vendored code
+that is not meant to parse on its own, exclude it:</p>
+<pre><code class="language-toml">[files]
+exclude = ["src/generated"]
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
