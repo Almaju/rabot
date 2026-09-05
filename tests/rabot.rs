@@ -30,46 +30,55 @@ fn lint_findings() -> Vec<(Rule, usize)> {
 fn every_rule_fires_where_expected() {
     let findings = lint_findings();
     let expected = [
+        (Rule::AmbientConfig, 46),
+        (Rule::AmbientConfig, 104),
+        (Rule::AmbientRandomness, 47),
+        (Rule::AmbientTime, 45),
+        (Rule::BooleanValidation, 40),
+        (Rule::BooleanValidation, 94),
         (Rule::BypassableConstructor, 23),
-        (Rule::CommentedOutCode, 79),
-        (Rule::FreeFunction, 35),
-        (Rule::FreeFunction, 86),
-        (Rule::FreeFunction, 88),
-        (Rule::FreeFunction, 92),
-        (Rule::FreeFunction, 111),
-        (Rule::FreeFunction, 121),
+        (Rule::CommentedOutCode, 105),
+        (Rule::DroppedErrorContext, 48),
+        (Rule::EscapeHatchVariant, 37),
+        (Rule::FreeFunction, 61),
+        (Rule::FreeFunction, 112),
+        (Rule::FreeFunction, 114),
+        (Rule::FreeFunction, 118),
+        (Rule::FreeFunction, 137),
+        (Rule::FreeFunction, 147),
         (Rule::GlobalState, 7),
-        (Rule::IgnoredTest, 149),
-        (Rule::MockUsage, 147),
+        (Rule::IgnoredTest, 175),
+        (Rule::MockUsage, 173),
         (Rule::OrphanModule, 5),
-        (Rule::PanicInProduction, 78),
-        (Rule::PanicInProduction, 83),
-        (Rule::PanicInProduction, 89),
+        (Rule::PanicInProduction, 104),
+        (Rule::PanicInProduction, 109),
+        (Rule::PanicInProduction, 115),
         (Rule::PrimitiveField, 12),
         (Rule::PrimitiveField, 13),
-        (Rule::PrimitiveSoup, 77),
-        (Rule::SectionedFunction, 121),
+        (Rule::PrimitiveSoup, 103),
+        (Rule::SectionedFunction, 147),
+        (Rule::SleepInTests, 185),
         (Rule::SortedDerives, 10),
         (Rule::SortedFields, 11),
-        (Rule::SortedFields, 47),
-        (Rule::SortedFields, 57),
-        (Rule::SortedImplItems, 67),
-        (Rule::SortedStructLiteral, 93),
-        (Rule::SortedStructPattern, 112),
-        (Rule::SortedTraitItems, 102),
-        (Rule::SortedVariants, 44),
+        (Rule::SortedFields, 73),
+        (Rule::SortedFields, 83),
+        (Rule::SortedImplItems, 93),
+        (Rule::SortedStructLiteral, 119),
+        (Rule::SortedStructPattern, 138),
+        (Rule::SortedTraitItems, 128),
+        (Rule::SortedVariants, 70),
         (Rule::StringlyTypedField, 32),
-        (Rule::SwallowedError, 36),
-        (Rule::SwallowedError, 37),
-        (Rule::SwallowedError, 40),
-        (Rule::TooManyParameters, 100),
-        (Rule::UndocumentedException, 56),
-        (Rule::UnknownRule, 62),
+        (Rule::SwallowedError, 62),
+        (Rule::SwallowedError, 63),
+        (Rule::SwallowedError, 66),
+        (Rule::TooManyParameters, 126),
+        (Rule::UndocumentedException, 82),
+        (Rule::UnknownRule, 88),
         (Rule::UntypedError, 26),
-        (Rule::UntypedError, 88),
-        (Rule::UntypedError, 96),
-        (Rule::VagueTodo, 81),
-        (Rule::VagueTypeName, 63),
+        (Rule::UntypedError, 114),
+        (Rule::UntypedError, 122),
+        (Rule::VagueTodo, 107),
+        (Rule::VagueTypeName, 89),
     ];
     for expectation in &expected {
         assert!(
@@ -109,7 +118,7 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 51)
+            .any(|(rule, line)| *rule == Rule::SortedVariants && *line == 77)
     );
     assert!(
         !findings
@@ -119,11 +128,11 @@ fn documented_exceptions_are_honoured() {
     assert!(
         !findings
             .iter()
-            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 129)
+            .any(|(rule, line)| *rule == Rule::PanicInProduction && *line > 155)
     );
     // Test-gated items relax the domain rules: `#[cfg(test)] fn test_helper` and
     // `#[cfg(any(test, ..))] struct MockService` raise nothing.
-    let relaxed_region = 130..=143;
+    let relaxed_region = 156..=169;
     let in_region: Vec<_> = findings
         .iter()
         .filter(|(_, line)| relaxed_region.contains(line))

@@ -149,10 +149,12 @@ impl App {
                             },
                             rule: Rule::SyntaxError,
                         });
-                        current = SourceFile::parse(path.clone(), self.read(&path)?).map_err(|_| {
+                        current = SourceFile::parse(path.clone(), self.read(&path)?).map_err(|error| {
                             AppError::Read {
                                 path: path.clone(),
-                                source: std::io::Error::other("file changed while formatting"),
+                                source: std::io::Error::other(format!(
+                                    "file changed while formatting: {error}"
+                                )),
                             }
                         })?;
                         break;

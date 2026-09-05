@@ -13,7 +13,9 @@ a different standard, and rabot knows where it is.
 
 ## What is relaxed there
 
-The domain rules: `panic-in-production`, `swallowed-error`, `untyped-error`,
+The domain rules: `panic-in-production`, `swallowed-error`, `dropped-error-context`,
+`untyped-error`, `boolean-validation`, `ambient-time`, `ambient-randomness`,
+`ambient-config`,
 `primitive-soup`, `primitive-field`, `stringly-typed-field`,
 `bypassable-constructor`, `free-function`, `vague-type-name`,
 `orphan-module`, `oversized-impl`, `too-many-parameters`,
@@ -21,8 +23,9 @@ The domain rules: `panic-in-production`, `swallowed-error`, `untyped-error`,
 
 ## What is not
 
-Sorting, the comment rules, `mock-usage` and `ignored-test`. A test file is
-still code, and the last two are about tests.
+Sorting, the comment rules, `mock-usage`, `ignored-test` and
+`sleep-in-tests`. A test file is still code, and the last three are about
+tests.
 
 ## Tuning it
 

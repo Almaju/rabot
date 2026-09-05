@@ -1,6 +1,6 @@
 [package]
 name = "rabot"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 default-run = "rabot"
 description = "A linter and formatter that enforces the principles of https://almaju.github.io/blog/ on Rust code"
