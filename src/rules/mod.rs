@@ -1,6 +1,7 @@
 //! One module per article. Each rule reads a [`SourceFile`] and returns
 //! [`Findings`]: diagnostics, plus edits when the rule can fix itself.
 
+pub mod ambient;
 pub mod comments;
 pub mod dependencies;
 pub mod errors;
@@ -51,6 +52,11 @@ impl Context<'_> {
             position,
             rule,
         })
+    }
+
+    /// Whether `span` lies in test code (see [`crate::test_regions`]).
+    pub fn in_test_region(&self, span: Span) -> bool {
+        self.file.test_regions.contains(self.file.range(span).start)
     }
 
     /// Every rule on this file, plus the problems with its allow comments.
@@ -125,6 +131,7 @@ pub trait Check {
 /// Every rule, in the order they run.
 pub fn all() -> Vec<Box<dyn Check>> {
     vec![
+        Box::new(ambient::Ambient),
         Box::new(comments::Comments),
         Box::new(dependencies::Dependencies),
         Box::new(errors::Errors),

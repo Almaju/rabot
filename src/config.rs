@@ -86,6 +86,8 @@ pub struct Naming {
     pub domain_fields: Vec<String>,
     /// Field names whose `String` value is really one of a few variants.
     pub enum_fields: Vec<String>,
+    /// Variant names of an error enum that catch whatever nobody named.
+    pub escape_hatch_variants: Vec<String>,
     /// Module names that collect orphaned logic.
     pub orphan_modules: Vec<String>,
     /// Type-name suffixes that stand in for a decision nobody made.
@@ -204,6 +206,17 @@ impl Default for Naming {
             ]
             .map(str::to_string)
             .to_vec(),
+            escape_hatch_variants: [
+                "Custom",
+                "Generic",
+                "Internal",
+                "Misc",
+                "Other",
+                "Unexpected",
+                "Unknown",
+            ]
+            .map(str::to_string)
+            .to_vec(),
             orphan_modules: ["common", "helper", "helpers", "misc", "util", "utils"]
                 .map(str::to_string)
                 .to_vec(),
@@ -230,7 +243,12 @@ impl Default for Tests {
     fn default() -> Self {
         Self {
             relax: vec![
+                Rule::AmbientConfig,
+                Rule::AmbientRandomness,
+                Rule::AmbientTime,
+                Rule::BooleanValidation,
                 Rule::BypassableConstructor,
+                Rule::DroppedErrorContext,
                 Rule::FreeFunction,
                 Rule::GlobalState,
                 Rule::OrphanModule,

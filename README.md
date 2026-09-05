@@ -111,6 +111,9 @@ parameters are never sorted; calling convention is a real exception.
 | `too-many-parameters` | [Structs](https://almaju.github.io/blog/docs/fundamentals/modeling/structs): parameters that travel together are a struct waiting to be named. |
 | `stringly-typed-field` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): `status: String`, `kind: String`, `role: String`. The valid values are an enum that has not been written yet. |
 | `bypassable-constructor` | [Primitives](https://almaju.github.io/blog/docs/fundamentals/modeling/primitives): `pub struct Email(pub String)` with an `Email::parse` that validates. Anyone can write `Email(garbage)` and skip the door. |
+| `dropped-error-context` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `.map_err(\|_\| ..)` throws the original error away before anyone reads it. Keep it as a `#[source]`. |
+| `escape-hatch-variant` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `Other(String)` in an error enum is the taxonomy's back door; every new failure will take it. |
+| `boolean-validation` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `validate_email() -> bool` says no without saying why. Return the reason, or parse into the newtype. |
 | `swallowed-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): an empty `Err(_) => {}` arm, an empty `if let Err(..)`, or `.ok();` as a statement. Every silent catch is a future 3am. |
 | `panic-in-production` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `unwrap`, `expect`, `panic!`, `todo!` outside tests and `main` are bets that a call never fails. |
 | `untyped-error` | [Errors](https://almaju.github.io/blog/docs/fundamentals/modeling/errors): `Box<dyn Error>`, `anyhow` and `Result<T, String>` erase the taxonomy callers need in order to decide. |
@@ -125,6 +128,10 @@ decision, not yours. They still apply to the trait definition itself.
 | --- | --- |
 | `global-state` | [Dependencies](https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies): a `static` with interior mutability is a dependency hidden from every signature. A logger is fine. |
 | `ignored-test` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `#[ignore]` without a reason. In six months nobody knows why three tests are skipped. `#[ignore = "why"]` is fine. |
+| `ambient-time` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `Utc::now()` inside the logic; nothing can freeze time to test it. Inject a `Clock`. |
+| `ambient-randomness` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `rand::random()` from a global generator; the failure cannot be replayed. Inject the `Rng`. |
+| `ambient-config` | [Dependencies](https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies): `env::var` outside `main` or `Config::from_env`. Read once, pass it in. |
+| `sleep-in-tests` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `thread::sleep` in a test passes on your machine and fails on a loaded runner. Wait on the event, or advance an injected clock. |
 | `mock-usage` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `mockall`, `faux`, `mock!`, `#[automock]`. Mocks test your assumptions; build the in-memory implementation. |
 | `commented-out-code` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): a comment that parses as Rust is code somebody could not delete. You have git. |
 | `vague-todo` | [Comments](https://almaju.github.io/blog/docs/fundamentals/style/comments): `// TODO: refactor this` says nothing. Say what, why, or link the ticket. |
@@ -147,14 +154,16 @@ An `unwrap` in a test is the assertion. A `MockClock` under `#[cfg(test)]` is
 exactly the injectable the testing article asks for. So inside test code
 (`#[cfg(test)]` items, `#[cfg(any(test, ..))]`, `#[test]` functions, and
 files under `tests/`, `benches/` or `examples/`) the domain rules stay
-silent: `panic-in-production`, `swallowed-error`, `untyped-error`,
+silent: `panic-in-production`, `swallowed-error`, `dropped-error-context`,
+`untyped-error`, `boolean-validation`, `ambient-time`, `ambient-randomness`,
+`ambient-config`,
 `primitive-soup`, `primitive-field`, `stringly-typed-field`,
 `bypassable-constructor`, `free-function`, `vague-type-name`,
 `orphan-module`, `oversized-impl`, `too-many-parameters`,
 `sectioned-function`.
 
-Sorting still applies, and so do the comment rules, `mock-usage` and
-`ignored-test`: a test file is still code. The list is `[tests] relax` in `rabot.toml`; set it to
+Sorting still applies, and so do the comment rules, `mock-usage`,
+`ignored-test` and `sleep-in-tests`: a test file is still code. The list is `[tests] relax` in `rabot.toml`; set it to
 `[]` to hold tests to the full standard.
 
 ## Exceptions must be written down
@@ -199,6 +208,7 @@ boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record", "Req
 domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password", "phone",
                  "price", "token", "url", "..."]   # names or `_suffix`es that deserve a newtype
 enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage", "state", "status"]
+escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other", "Unexpected", "Unknown"]
 orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
                   "Processor", "Repository", "Service", "UseCase", "Util", "Utils"]

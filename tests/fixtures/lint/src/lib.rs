@@ -32,6 +32,32 @@ pub struct Order {
     status: String,
 }
 
+pub enum PaymentError {
+    Declined,
+    Other(String),
+}
+
+pub fn validate_email(s: &str) -> bool {
+    s.contains('@')
+}
+
+pub fn ambient() -> u64 {
+    let now = std::time::SystemTime::now();
+    let port = std::env::var("PORT");
+    let n: u64 = rand::random();
+    let _ = std::fs::read_to_string("x").map_err(|_| PaymentError::Declined);
+    n
+}
+
+impl Config {
+    pub fn from_env() -> Result<Self, PaymentError> {
+        let _ = std::env::var("PORT");
+        Ok(Config)
+    }
+}
+
+pub struct Config;
+
 pub fn swallow(order: Order) {
     std::fs::remove_file("x").ok();
     if let Err(_) = std::fs::remove_file("y") {}
@@ -153,6 +179,11 @@ mod tests {
     #[ignore = "waits on PERF-112"]
     #[test]
     fn skipped_for_a_reason() {}
+
+    #[test]
+    fn waits_for_luck() {
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
 
     #[test]
     fn unwrap_is_fine_in_tests() {

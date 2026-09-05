@@ -24,6 +24,8 @@ domain-fields = ["_id", "amount", "email", "latitude", "longitude", "password",
                  "phone", "price", "token", "url", "..."]
 enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage",
                "state", "status"]
+escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other",
+                         "Unexpected", "Unknown"]
 boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
                      "Request", "Response", "Row"]
 

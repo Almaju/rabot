@@ -35,7 +35,39 @@ struct Visitor<'a> {
 }
 
 impl Visitor<'_> {
+    /// `fn validate_email(..) -> bool`: a `false` with no reason attached.
+    fn check_boolean_validation(&mut self, sig: &syn::Signature) {
+        if self.in_trait_impl {
+            return;
+        }
+        let name = sig.ident.to_string();
+        let validates = name == "is_valid"
+            || ["validate", "verify", "is_valid"]
+                .iter()
+                .any(|prefix| name == *prefix || name.starts_with(&format!("{prefix}_")));
+        if !validates {
+            return;
+        }
+        let syn::ReturnType::Type(_, ty) = &sig.output else {
+            return;
+        };
+        if !matches!(&**ty, syn::Type::Path(path) if path.path.is_ident("bool")) {
+            return;
+        }
+        self.findings.report_with_help(
+            self.cx,
+            Rule::BooleanValidation,
+            sig.ident.span(),
+            format!("`{name}` returns `bool`: a `false` says no without saying why"),
+            Some(
+                "return `Result<(), ValidationError>` with the reason, or parse into the newtype so the check happens once"
+                    .to_string(),
+            ),
+        );
+    }
+
     fn check_signature(&mut self, sig: &syn::Signature) {
+        self.check_boolean_validation(sig);
         if self.in_trait_impl || self.startup_depth > 0 {
             return;
         }
@@ -106,6 +138,21 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     }
 
     fn visit_expr_method_call(&mut self, node: &'ast syn::ExprMethodCall) {
+        let method = node.method.to_string();
+        if matches!(method.as_str(), "map_err" | "or_else" | "unwrap_or_else")
+            && node.args.first().is_some_and(ignores_its_argument)
+        {
+            self.findings.report_with_help(
+                self.cx,
+                Rule::DroppedErrorContext,
+                node.method.span(),
+                format!("`.{method}(|_| ..)` throws the original error away: the cause is gone before anyone reads it"),
+                Some(
+                    "keep it as the source: `MyError::Io(#[from] io::Error)`, or a `#[source]` field the caller can walk"
+                        .to_string(),
+                ),
+            );
+        }
         if self.startup_depth == 0 {
             let method = node.method.to_string();
             if matches!(method.as_str(), "unwrap" | "expect" | "unwrap_err" | "expect_err") {
@@ -127,6 +174,35 @@ impl<'ast> Visit<'ast> for Visitor<'_> {
     fn visit_impl_item_fn(&mut self, node: &'ast syn::ImplItemFn) {
         self.check_signature(&node.sig);
         syn::visit::visit_impl_item_fn(self, node);
+    }
+
+    fn visit_item_enum(&mut self, node: &'ast syn::ItemEnum) {
+        if !node.ident.to_string().ends_with("Error") {
+            return;
+        }
+        for variant in &node.variants {
+            let name = variant.ident.to_string();
+            if !self.cx.config.naming.escape_hatch_variants.contains(&name) {
+                continue;
+            }
+            let payload = match &variant.fields {
+                syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
+                    self.cx.file.text_of(&fields.unnamed[0].ty)
+                }
+                syn::Fields::Unit => "",
+                _ => continue,
+            };
+            self.findings.report_with_help(
+                self.cx,
+                Rule::EscapeHatchVariant,
+                variant.ident.span(),
+                format!(
+                    "`{}::{name}({payload})` is the taxonomy's back door: every new failure will take it, and nobody will match on it",
+                    node.ident
+                ),
+                Some("name the failure as its own variant, carrying the data a caller needs to react".to_string()),
+            );
+        }
     }
 
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
@@ -232,6 +308,19 @@ fn string_error(ty: &syn::Type) -> bool {
         syn::Type::Reference(reference) => {
             matches!(&*reference.elem, syn::Type::Path(inner) if inner.path.is_ident("str"))
         }
+        _ => false,
+    }
+}
+
+/// `|_| ..` or `|_error| ..`: a closure that receives the error and looks
+/// away.
+fn ignores_its_argument(expr: &syn::Expr) -> bool {
+    let syn::Expr::Closure(closure) = expr else {
+        return false;
+    };
+    match closure.inputs.first() {
+        Some(syn::Pat::Wild(_)) => true,
+        Some(syn::Pat::Ident(ident)) => ident.ident.to_string().starts_with('_'),
         _ => false,
     }
 }

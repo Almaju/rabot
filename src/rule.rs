@@ -10,8 +10,14 @@ const BLOG: &str = "https://almaju.github.io/blog/docs";
 #[derive(Clone, Copy, Debug, Deserialize, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Rule {
-    CommentedOutCode,
+    AmbientConfig,
+    AmbientRandomness,
+    AmbientTime,
+    BooleanValidation,
     BypassableConstructor,
+    CommentedOutCode,
+    DroppedErrorContext,
+    EscapeHatchVariant,
     FreeFunction,
     GlobalState,
     IgnoredTest,
@@ -22,6 +28,7 @@ pub enum Rule {
     PrimitiveField,
     PrimitiveSoup,
     SectionedFunction,
+    SleepInTests,
     SortedDerives,
     SortedFields,
     SortedImplItems,
@@ -43,8 +50,14 @@ pub enum Rule {
 impl Rule {
     pub fn all() -> &'static [Rule] {
         &[
-            Rule::CommentedOutCode,
+            Rule::AmbientConfig,
+            Rule::AmbientRandomness,
+            Rule::AmbientTime,
+            Rule::BooleanValidation,
             Rule::BypassableConstructor,
+            Rule::CommentedOutCode,
+            Rule::DroppedErrorContext,
+            Rule::EscapeHatchVariant,
             Rule::FreeFunction,
             Rule::GlobalState,
             Rule::IgnoredTest,
@@ -55,6 +68,7 @@ impl Rule {
             Rule::PrimitiveField,
             Rule::PrimitiveSoup,
             Rule::SectionedFunction,
+            Rule::SleepInTests,
             Rule::SortedDerives,
             Rule::SortedFields,
             Rule::SortedImplItems,
@@ -87,10 +101,26 @@ impl Rule {
 
     pub fn description(self) -> &'static str {
         match self {
+            Rule::AmbientConfig => "`env::var` outside `main` is configuration hidden from the signature.",
+            Rule::AmbientRandomness => {
+                "A global random generator makes a failure impossible to replay. Inject the Rng."
+            }
+            Rule::AmbientTime => {
+                "`Utc::now()` inside the logic means nothing can freeze time. Inject a Clock."
+            }
+            Rule::BooleanValidation => {
+                "`validate_x() -> bool` says no without saying why. Return the reason, or parse."
+            }
             Rule::BypassableConstructor => {
                 "A newtype that validates in a constructor but exposes its field can be built without it."
             }
             Rule::CommentedOutCode => "Commented-out code. You have git; there is no temporary.",
+            Rule::DroppedErrorContext => {
+                "`map_err(|_| ..)` throws the original error away before anyone reads it."
+            }
+            Rule::EscapeHatchVariant => {
+                "An `Other(String)` error variant is the taxonomy's back door; every failure will take it."
+            }
             Rule::FreeFunction => {
                 "A free function whose primary parameter or return type is a local type belongs on that type."
             }
@@ -112,6 +142,9 @@ impl Rule {
             }
             Rule::SectionedFunction => {
                 "A function narrated by section comments is several functions; the headers are their names."
+            }
+            Rule::SleepInTests => {
+                "A `sleep` in a test passes on your machine and fails on a loaded CI runner."
             }
             Rule::SortedDerives => "Derive lists are sorted alphabetically.",
             Rule::SortedFields => "Struct fields are sorted alphabetically.",
@@ -152,8 +185,14 @@ impl Rule {
             };
         }
         match self {
+            Rule::AmbientConfig => page!("ambient-config"),
+            Rule::AmbientRandomness => page!("ambient-randomness"),
+            Rule::AmbientTime => page!("ambient-time"),
+            Rule::BooleanValidation => page!("boolean-validation"),
             Rule::BypassableConstructor => page!("bypassable-constructor"),
             Rule::CommentedOutCode => page!("commented-out-code"),
+            Rule::DroppedErrorContext => page!("dropped-error-context"),
+            Rule::EscapeHatchVariant => page!("escape-hatch-variant"),
             Rule::FreeFunction => page!("free-function"),
             Rule::GlobalState => page!("global-state"),
             Rule::IgnoredTest => page!("ignored-test"),
@@ -164,6 +203,7 @@ impl Rule {
             Rule::PrimitiveField => page!("primitive-field"),
             Rule::PrimitiveSoup => page!("primitive-soup"),
             Rule::SectionedFunction => page!("sectioned-function"),
+            Rule::SleepInTests => page!("sleep-in-tests"),
             Rule::SortedDerives => page!("sorted-derives"),
             Rule::SortedFields => page!("sorted-fields"),
             Rule::SortedImplItems => page!("sorted-impl-items"),
@@ -203,8 +243,14 @@ impl Rule {
 
     pub fn name(self) -> &'static str {
         match self {
+            Rule::AmbientConfig => "ambient-config",
+            Rule::AmbientRandomness => "ambient-randomness",
+            Rule::AmbientTime => "ambient-time",
+            Rule::BooleanValidation => "boolean-validation",
             Rule::BypassableConstructor => "bypassable-constructor",
             Rule::CommentedOutCode => "commented-out-code",
+            Rule::DroppedErrorContext => "dropped-error-context",
+            Rule::EscapeHatchVariant => "escape-hatch-variant",
             Rule::FreeFunction => "free-function",
             Rule::GlobalState => "global-state",
             Rule::IgnoredTest => "ignored-test",
@@ -215,6 +261,7 @@ impl Rule {
             Rule::PrimitiveField => "primitive-field",
             Rule::PrimitiveSoup => "primitive-soup",
             Rule::SectionedFunction => "sectioned-function",
+            Rule::SleepInTests => "sleep-in-tests",
             Rule::SortedDerives => "sorted-derives",
             Rule::SortedFields => "sorted-fields",
             Rule::SortedImplItems => "sorted-impl-items",
@@ -241,14 +288,21 @@ impl Rule {
                 "fundamentals/style/comments"
             }
             Rule::FreeFunction | Rule::VagueTypeName => "fundamentals/modeling/method-ownership",
-            Rule::GlobalState => "fundamentals/architecture/dependencies",
-            Rule::IgnoredTest | Rule::MockUsage => "fundamentals/architecture/testing",
+            Rule::AmbientConfig | Rule::GlobalState => "fundamentals/architecture/dependencies",
+            Rule::AmbientRandomness
+            | Rule::AmbientTime
+            | Rule::IgnoredTest
+            | Rule::MockUsage
+            | Rule::SleepInTests => "fundamentals/architecture/testing",
             Rule::OrphanModule | Rule::OversizedImpl | Rule::TooManyParameters => {
                 "fundamentals/modeling/structs"
             }
-            Rule::PanicInProduction | Rule::SwallowedError | Rule::UntypedError => {
-                "fundamentals/modeling/errors"
-            }
+            Rule::BooleanValidation
+            | Rule::DroppedErrorContext
+            | Rule::EscapeHatchVariant
+            | Rule::PanicInProduction
+            | Rule::SwallowedError
+            | Rule::UntypedError => "fundamentals/modeling/errors",
             Rule::BypassableConstructor
             | Rule::PrimitiveField
             | Rule::PrimitiveSoup

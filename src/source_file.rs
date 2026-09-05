@@ -121,6 +121,7 @@ impl SourceFile {
         self.path
             .strip_prefix(root)
             .map(Path::to_path_buf)
+            // rabot: allow(dropped-error-context) StripPrefixError carries nothing; the fallback is the full path
             .unwrap_or_else(|_| self.path.clone())
     }
 
