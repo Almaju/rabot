@@ -18,11 +18,7 @@ Wire shapes are skipped. A struct named `*Request`, `*Response`, `*Row`,
 ## Don't
 
 ```rust
-struct User {
-    email: String,
-    id: String,
-    latitude: f64,
-}
+{{#include primitive-field/bad.rs}}
 ```
 
 `email` accepts `"not an email"`. `id` accepts an order id. `latitude`
@@ -31,15 +27,7 @@ accepts 400.
 ## Do
 
 ```rust
-struct User {
-    email: Email,
-    id: UserId,
-    latitude: Latitude,
-}
-
-impl Email {
-    fn parse(s: &str) -> Result<Self, ValidationError> { .. }
-}
+{{#include primitive-field/good.rs}}
 ```
 
 Validate once, at construction, at the boundary. Everything past that line

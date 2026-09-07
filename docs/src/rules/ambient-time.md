@@ -16,12 +16,7 @@ that uses it.
 ## Don't
 
 ```rust
-impl Session {
-    fn create(user_id: UserId) -> Session {
-        let now = Utc::now();
-        Session { created_at: now, expires_at: now + Duration::hours(1), user_id }
-    }
-}
+{{#include ambient-time/bad.rs}}
 ```
 
 The test for "expires one hour after creation" has to compute the current
@@ -30,25 +25,7 @@ hour, or sleep, or give up.
 ## Do
 
 ```rust
-trait Clock: Send + Sync {
-    fn now(&self) -> DateTime<Utc>;
-}
-
-struct Sessions<C: Clock> { clock: C }
-
-impl<C: Clock> Sessions<C> {
-    fn create(&self, user_id: UserId) -> Session {
-        let now = self.clock.now();
-        Session { created_at: now, expires_at: now + Duration::hours(1), user_id }
-    }
-}
-
-#[test]
-fn expires_one_hour_after_creation() {
-    let clock = FixedClock(Utc.with_ymd_and_hms(2024, 1, 15, 12, 0, 0).unwrap());
-    let session = Sessions { clock }.create(user_id);
-    assert_eq!(session.expires_at.hour(), 13);
-}
+{{#include ambient-time/good.rs}}
 ```
 
 The bar for injection: would it be useful outside tests? A `Clock` is. You

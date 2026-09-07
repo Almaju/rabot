@@ -13,11 +13,7 @@ can legitimately show code.
 ## Don't
 
 ```rust
-fn total(items: &[Item]) -> Money {
-    // let discount = apply_coupon(&items);
-    // items.iter().map(|i| i.price - discount).sum()
-    items.iter().map(|i| i.price).sum()
-}
+{{#include commented-out-code/bad.rs}}
 ```
 
 It creates noise, confuses the reader about what runs, and never gets
@@ -26,9 +22,7 @@ cleaned up.
 ## Do
 
 ```rust
-fn total(items: &[Item]) -> Money {
-    items.iter().map(|i| i.price).sum()
-}
+{{#include commented-out-code/good.rs}}
 ```
 
 If you need it back, `git log` exists. If you cannot find it there, you did

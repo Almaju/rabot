@@ -16,13 +16,13 @@ reorder by hand.
 ## Don't
 
 ```rust
-User { role, name: input.name, id, email: input.email, created_at: now }
+{{#include sorted-struct-literal/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-User { created_at: now, email: input.email, id, name: input.name, role }
+{{#include sorted-struct-literal/good.rs}}
 ```
 
 Same order as the struct, every time it is built. A reviewer comparing the

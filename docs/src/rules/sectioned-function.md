@@ -15,24 +15,13 @@ code, `TODO`/`FIXME`/`SAFETY` notes and ticket links never count.
 ## Don't
 
 ```rust
-fn process(order: &mut Order) -> Result<(), ProcessError> {
-    // step 1: validate
-    if order.items.is_empty() { return Err(ProcessError::Empty); }
-    // step 2: transform
-    let total = order.items.iter().map(Item::price).sum();
-    // step 3: persist
-    store.save(order, total)
-}
+{{#include sectioned-function/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-fn process(order: &mut Order) -> Result<(), ProcessError> {
-    order.validate()?;
-    let total = order.total();
-    store.save(order, total)
-}
+{{#include sectioned-function/good.rs}}
 ```
 
 Each header became a name. The function reads as the summary the comments

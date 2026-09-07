@@ -13,17 +13,13 @@ exception and never fires.
 ## Don't
 
 ```rust
-#[ignore]
-#[test]
-fn transfers_between_accounts() { .. }
+{{#include ignored-test/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-#[ignore = "needs the payments sandbox; run nightly, see PAY-431"]
-#[test]
-fn transfers_between_accounts() { .. }
+{{#include ignored-test/good.rs}}
 ```
 
 The reason says whether the test may run again, and who to ask.

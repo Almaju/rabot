@@ -15,15 +15,7 @@ their layout is the point.
 ## Don't
 
 ```rust
-struct User {
-    id: String,           // primary key first, obviously
-    email: String,
-    name: String,
-    created_at: DateTime, // metadata at the end
-    updated_at: DateTime,
-    last_login_at: Option<DateTime>,
-    phone_number: Option<String>, // where does this go?
-}
+{{#include sorted-fields/bad.rs}}
 ```
 
 The logic lives in one developer's head. The next developer tacks
@@ -33,15 +25,7 @@ later, the struct is sediment.
 ## Do
 
 ```rust
-struct User {
-    created_at: DateTime,
-    email: String,
-    id: String,
-    last_login_at: Option<DateTime>,
-    name: String,
-    phone_number: Option<String>,
-    updated_at: DateTime,
-}
+{{#include sorted-fields/good.rs}}
 ```
 
 Nobody asks where `phone_number` goes. P comes after N, before U.

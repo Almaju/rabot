@@ -18,25 +18,13 @@ An impl containing a macro invocation is left alone.
 ## Don't
 
 ```rust
-impl UserRepository {
-    fn validate(&self) -> bool { .. }
-    pub fn delete_user(&self, id: &UserId) { .. }
-    pub fn create_user(&self, user: User) { .. }
-    pub fn new(db: Database) -> Self { .. }
-}
+{{#include sorted-impl-items/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-impl UserRepository {
-    pub fn new(db: Database) -> Self { .. }
-
-    pub fn create_user(&self, user: User) { .. }
-    pub fn delete_user(&self, id: &UserId) { .. }
-
-    fn validate(&self) -> bool { .. }
-}
+{{#include sorted-impl-items/good.rs}}
 ```
 
 The constructor is where a reader starts. Public API next, in an order that

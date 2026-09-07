@@ -14,27 +14,13 @@ it.
 ## Don't
 
 ```rust
-fn validate_email(s: &str) -> bool {
-    s.contains('@') && !s.starts_with('@')
-}
-
-if !validate_email(&input) {
-    return Err(ApiError::Invalid("email".into())); // which rule? the user has to guess
-}
+{{#include boolean-validation/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-enum EmailError { MissingAt, MissingLocalPart }
-
-impl Email {
-    fn parse(s: &str) -> Result<Self, EmailError> {
-        if !s.contains('@') { return Err(EmailError::MissingAt); }
-        if s.starts_with('@') { return Err(EmailError::MissingLocalPart); }
-        Ok(Email(s.to_lowercase()))
-    }
-}
+{{#include boolean-validation/good.rs}}
 ```
 
 The reason travels with the failure, and the success is a type: nothing

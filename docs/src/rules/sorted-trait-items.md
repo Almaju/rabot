@@ -12,23 +12,13 @@ impls line up.
 ## Don't
 
 ```rust
-trait Persist {
-    fn save(&self, store: &Store) -> Result<(), SaveError>;
-    type Error;
-    fn load(id: &Id, store: &Store) -> Result<Self, Self::Error>;
-    const TABLE: &'static str;
-}
+{{#include sorted-trait-items/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-trait Persist {
-    const TABLE: &'static str;
-    type Error;
-    fn load(id: &Id, store: &Store) -> Result<Self, Self::Error>;
-    fn save(&self, store: &Store) -> Result<(), SaveError>;
-}
+{{#include sorted-trait-items/good.rs}}
 ```
 
 ## Silence it

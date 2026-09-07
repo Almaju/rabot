@@ -12,8 +12,7 @@ after the parenthesis.
 ## Don't
 
 ```rust
-// rabot: allow(sorted-fields)
-struct Connection { guard: Guard, pool: Pool }
+{{#include undocumented-exception/bad.rs}}
 ```
 
 The comment silences nothing. It is reported as an error, and the rule it
@@ -22,8 +21,7 @@ tried to allow still fires.
 ## Do
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters: the guard must release before the pool
-struct Connection { guard: Guard, pool: Pool }
+{{#include undocumented-exception/good.rs}}
 ```
 
 The sentence is the point. The next reader gets the reason instead of a

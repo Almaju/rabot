@@ -178,49 +178,12 @@ impl Rule {
     }
 
     /// The rule's page from the documentation, Markdown, for `rabot explain`.
-    pub fn documentation(self) -> &'static str {
-        macro_rules! page {
-            ($name:literal) => {
-                include_str!(concat!("../docs/src/rules/", $name, ".md"))
-            };
-        }
-        match self {
-            Rule::AmbientConfig => page!("ambient-config"),
-            Rule::AmbientRandomness => page!("ambient-randomness"),
-            Rule::AmbientTime => page!("ambient-time"),
-            Rule::BooleanValidation => page!("boolean-validation"),
-            Rule::BypassableConstructor => page!("bypassable-constructor"),
-            Rule::CommentedOutCode => page!("commented-out-code"),
-            Rule::DroppedErrorContext => page!("dropped-error-context"),
-            Rule::EscapeHatchVariant => page!("escape-hatch-variant"),
-            Rule::FreeFunction => page!("free-function"),
-            Rule::GlobalState => page!("global-state"),
-            Rule::IgnoredTest => page!("ignored-test"),
-            Rule::MockUsage => page!("mock-usage"),
-            Rule::OrphanModule => page!("orphan-module"),
-            Rule::OversizedImpl => page!("oversized-impl"),
-            Rule::PanicInProduction => page!("panic-in-production"),
-            Rule::PrimitiveField => page!("primitive-field"),
-            Rule::PrimitiveSoup => page!("primitive-soup"),
-            Rule::SectionedFunction => page!("sectioned-function"),
-            Rule::SleepInTests => page!("sleep-in-tests"),
-            Rule::SortedDerives => page!("sorted-derives"),
-            Rule::SortedFields => page!("sorted-fields"),
-            Rule::SortedImplItems => page!("sorted-impl-items"),
-            Rule::SortedStructLiteral => page!("sorted-struct-literal"),
-            Rule::SortedStructPattern => page!("sorted-struct-pattern"),
-            Rule::SortedTraitItems => page!("sorted-trait-items"),
-            Rule::SortedVariants => page!("sorted-variants"),
-            Rule::StringlyTypedField => page!("stringly-typed-field"),
-            Rule::SwallowedError => page!("swallowed-error"),
-            Rule::SyntaxError => page!("syntax-error"),
-            Rule::TooManyParameters => page!("too-many-parameters"),
-            Rule::UndocumentedException => page!("undocumented-exception"),
-            Rule::UnknownRule => page!("unknown-rule"),
-            Rule::UntypedError => page!("untyped-error"),
-            Rule::VagueTodo => page!("vague-todo"),
-            Rule::VagueTypeName => page!("vague-type-name"),
-        }
+    ///
+    /// Each page pulls its examples from `docs/src/rules/<name>/{bad,good}.rs`
+    /// with mdBook `{{#include}}` directives; the same files are compiled in
+    /// here so the terminal shows the code, not the directive.
+    pub fn documentation(self) -> String {
+        self.documentation_page().render()
     }
 
     /// The published page for this rule.
@@ -320,6 +283,81 @@ impl Rule {
         };
         format!("{BLOG}/{page}")
     }
+
+    fn documentation_page(self) -> DocumentationPage {
+        macro_rules! page {
+            ($name:literal) => {
+                DocumentationPage {
+                    bad: include_str!(concat!("../docs/src/rules/", $name, "/bad.rs")),
+                    good: include_str!(concat!("../docs/src/rules/", $name, "/good.rs")),
+                    markdown: include_str!(concat!("../docs/src/rules/", $name, ".md")),
+                    name: $name,
+                }
+            };
+        }
+        match self {
+            Rule::AmbientConfig => page!("ambient-config"),
+            Rule::AmbientRandomness => page!("ambient-randomness"),
+            Rule::AmbientTime => page!("ambient-time"),
+            Rule::BooleanValidation => page!("boolean-validation"),
+            Rule::BypassableConstructor => page!("bypassable-constructor"),
+            Rule::CommentedOutCode => page!("commented-out-code"),
+            Rule::DroppedErrorContext => page!("dropped-error-context"),
+            Rule::EscapeHatchVariant => page!("escape-hatch-variant"),
+            Rule::FreeFunction => page!("free-function"),
+            Rule::GlobalState => page!("global-state"),
+            Rule::IgnoredTest => page!("ignored-test"),
+            Rule::MockUsage => page!("mock-usage"),
+            Rule::OrphanModule => page!("orphan-module"),
+            Rule::OversizedImpl => page!("oversized-impl"),
+            Rule::PanicInProduction => page!("panic-in-production"),
+            Rule::PrimitiveField => page!("primitive-field"),
+            Rule::PrimitiveSoup => page!("primitive-soup"),
+            Rule::SectionedFunction => page!("sectioned-function"),
+            Rule::SleepInTests => page!("sleep-in-tests"),
+            Rule::SortedDerives => page!("sorted-derives"),
+            Rule::SortedFields => page!("sorted-fields"),
+            Rule::SortedImplItems => page!("sorted-impl-items"),
+            Rule::SortedStructLiteral => page!("sorted-struct-literal"),
+            Rule::SortedStructPattern => page!("sorted-struct-pattern"),
+            Rule::SortedTraitItems => page!("sorted-trait-items"),
+            Rule::SortedVariants => page!("sorted-variants"),
+            Rule::StringlyTypedField => page!("stringly-typed-field"),
+            Rule::SwallowedError => page!("swallowed-error"),
+            Rule::SyntaxError => page!("syntax-error"),
+            Rule::TooManyParameters => page!("too-many-parameters"),
+            Rule::UndocumentedException => page!("undocumented-exception"),
+            Rule::UnknownRule => page!("unknown-rule"),
+            Rule::UntypedError => page!("untyped-error"),
+            Rule::VagueTodo => page!("vague-todo"),
+            Rule::VagueTypeName => page!("vague-type-name"),
+        }
+    }
+
+    #[cfg(test)]
+    fn documentation_source(self) -> &'static str {
+        self.documentation_page().markdown
+    }
+}
+
+/// A rule page and the two example files its `{{#include}}` directives
+/// point at, which sit next to it under `docs/src/rules/<name>/`.
+struct DocumentationPage {
+    bad: &'static str,
+    good: &'static str,
+    markdown: &'static str,
+    name: &'static str,
+}
+
+impl DocumentationPage {
+    fn render(&self) -> String {
+        let mut page = self.markdown.to_string();
+        for (file, text) in [("bad", self.bad), ("good", self.good)] {
+            let directive = format!("{{{{#include {}/{file}.rs}}}}", self.name);
+            page = page.replace(&directive, text.trim_end());
+        }
+        page
+    }
 }
 
 impl fmt::Display for Rule {
@@ -343,6 +381,18 @@ mod tests {
                     page.contains("## Don't") && page.contains("## Do"),
                     "{rule}: do and don't"
                 );
+                assert!(
+                    !page.contains("{{#include"),
+                    "{rule}: an include directive survived rendering: the page points at a file that is not its own example"
+                );
+                let markdown = rule.documentation_source();
+                for file in ["bad", "good"] {
+                    let directive = format!("{{{{#include {rule}/{file}.rs}}}}");
+                    assert!(
+                        markdown.contains(&directive),
+                        "{rule}: the page must include {file}.rs"
+                    );
+                }
             }
             assert!(
                 page.contains("**Level**: error") || page.contains("**Level**: warn"),

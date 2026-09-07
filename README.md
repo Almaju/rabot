@@ -243,3 +243,9 @@ exclude = ["target"]           # gitignore-style globs
 rabot is checked by rabot in CI: `rabot fmt --check src` and
 `rabot check --strict src`. Its structs are alphabetical, its errors are
 enums, and the two places it breaks its own rules carry a reason.
+
+The examples in the documentation are checked too. Every rule page includes
+`docs/src/rules/<rule>/bad.rs` and `good.rs`; the test suite asserts that
+`bad.rs` breaks exactly that rule and nothing else, that `good.rs` is clean
+under every rule, and that `rabot fmt` turns each sorting rule's `bad.rs`
+into its `good.rs`. A rule without both files fails the build.

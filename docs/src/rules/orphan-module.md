@@ -13,10 +13,7 @@ whether declared inline or as `mod utils;`.
 ## Don't
 
 ```rust
-// utils.rs
-pub fn calculate_distance(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 { .. }
-pub fn format_coordinates(lat: f64, lon: f64) -> String { .. }
-pub fn validate_lat_lon(lat: f64, lon: f64) -> bool { .. }
+{{#include orphan-module/bad.rs}}
 ```
 
 It starts with one function that has no obvious home. Then fifteen. Then it
@@ -26,14 +23,7 @@ anything. It is a drawer.
 ## Do
 
 ```rust
-// gps_coordinates.rs
-struct GpsCoordinates { latitude: f64, longitude: f64 }
-
-impl GpsCoordinates {
-    fn distance_to(&self, other: &Self) -> Distance { .. }
-    fn display(&self) -> String { .. }
-    fn parse(lat: f64, lon: f64) -> Result<Self, InvalidCoordinates> { .. }
-}
+{{#include orphan-module/good.rs}}
 ```
 
 Five functions that share three parameters are a struct. Name it and the

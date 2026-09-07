@@ -14,21 +14,13 @@ where declaration order is the comparison order.
 ## Don't
 
 ```rust
-enum UserRole {
-    Member,
-    Admin,
-    Guest { since: u64, invited_by: String },
-}
+{{#include sorted-variants/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-enum UserRole {
-    Admin,
-    Guest { invited_by: String, since: u64 },
-    Member,
-}
+{{#include sorted-variants/good.rs}}
 ```
 
 Fields of a struct-like variant are sorted too (that is

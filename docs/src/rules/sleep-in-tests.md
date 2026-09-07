@@ -13,12 +13,7 @@ question.
 ## Don't
 
 ```rust
-#[tokio::test]
-async fn delivers_the_event() {
-    bus.publish(event);
-    tokio::time::sleep(Duration::from_millis(50)).await; // "enough time"
-    assert_eq!(subscriber.received(), vec![event]);
-}
+{{#include sleep-in-tests/bad.rs}}
 ```
 
 Fifty milliseconds is enough on your laptop. On a loaded CI runner it is
@@ -27,12 +22,7 @@ not, once a week, and someone adds a zero.
 ## Do
 
 ```rust
-#[tokio::test]
-async fn delivers_the_event() {
-    bus.publish(event);
-    let received = subscriber.next().await; // waits for the event, not for time
-    assert_eq!(received, event);
-}
+{{#include sleep-in-tests/good.rs}}
 ```
 
 When the code under test measures time, inject the [clock](ambient-time.md)

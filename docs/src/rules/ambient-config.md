@@ -14,10 +14,7 @@ functions and types that exist to read configuration (a name containing
 ## Don't
 
 ```rust
-async fn start_server(app: App) -> Result<(), ServerError> {
-    let port: u16 = std::env::var("PORT")?.parse()?;
-    app.listen(port).await
-}
+{{#include ambient-config/bad.rs}}
 ```
 
 The signature says this needs an `App`. It also needs `PORT`, and you find
@@ -26,20 +23,7 @@ out when it is missing, at runtime, in the environment where it was not set.
 ## Do
 
 ```rust
-struct Config { db_url: DatabaseUrl, port: Port }
-
-impl Config {
-    fn from_env() -> Result<Self, ConfigError> { .. }
-}
-
-async fn start_server(app: App, port: Port) -> Result<(), ServerError> {
-    app.listen(port).await
-}
-
-fn main() {
-    let config = Config::from_env().expect("configuration required for startup");
-    start_server(app, config.port)
-}
+{{#include ambient-config/good.rs}}
 ```
 
 Read once, at the top, parsed into types. Everything below takes what it

@@ -16,8 +16,7 @@ signature, not yours.
 ## Don't
 
 ```rust
-fn fetch(url: &Url) -> Result<Response, Box<dyn Error>> { .. }
-fn parse(input: &str) -> Result<Config, String> { .. }
+{{#include untyped-error/bad.rs}}
 ```
 
 The caller can display the error. It cannot retry on a timeout, refresh on
@@ -27,20 +26,7 @@ tell them apart.
 ## Do
 
 ```rust
-enum FetchError {
-    Auth { refresh_token: RefreshToken },
-    Network { retry_after: Duration },
-    RateLimited { retry_after: Duration },
-    Validation(ValidationError),
-}
-
-fn fetch(url: &Url) -> Result<Response, FetchError> { .. }
-
-match error {
-    FetchError::Network { retry_after } | FetchError::RateLimited { retry_after } => sleep(retry_after),
-    FetchError::Auth { refresh_token } => refresh(refresh_token)?,
-    FetchError::Validation(_) => return Err(error),
-}
+{{#include untyped-error/good.rs}}
 ```
 
 Granular enough to make different decisions. If two failures get identical

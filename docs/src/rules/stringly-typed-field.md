@@ -18,26 +18,13 @@ Wire shapes (`*Request`, `*Row`, ...) are skipped, like
 ## Don't
 
 ```rust
-struct Order {
-    status: String, // "pending" | "approved" | "rejected"
-}
-
-if order.status == "aproved" { ship(order) } // never ships
+{{#include stringly-typed-field/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-enum OrderStatus { Approved, Pending, Rejected }
-
-struct Order {
-    status: OrderStatus,
-}
-
-match order.status {
-    OrderStatus::Approved => ship(order),
-    OrderStatus::Pending | OrderStatus::Rejected => {}
-}
+{{#include stringly-typed-field/good.rs}}
 ```
 
 Parse the string once, where it enters. A typo is now a compile error, and
