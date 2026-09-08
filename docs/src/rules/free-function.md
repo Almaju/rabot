@@ -14,9 +14,7 @@ and generic parameters are excluded.
 ## Don't
 
 ```rust
-fn ban(user: &mut User) { .. }
-fn parse_url(s: &str) -> Result<Url, ParseError> { .. }
-fn format_user(user: &User) -> String { .. }
+{{#include free-function/bad.rs}}
 ```
 
 Six months later somebody who could not find `ban` adds a second one on
@@ -25,14 +23,7 @@ Six months later somebody who could not find `ban` adds a second one on
 ## Do
 
 ```rust
-impl User {
-    fn ban(&mut self) { .. }
-    fn display_name(&self) -> String { .. }
-}
-
-impl Url {
-    fn parse(s: &str) -> Result<Self, ParseError> { .. }
-}
+{{#include free-function/good.rs}}
 ```
 
 `user.ban()`. `Url::parse(s)`. One place to look, one place to add logic,

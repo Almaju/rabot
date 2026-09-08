@@ -10,7 +10,7 @@ unknown directive after `rabot:`, or a missing closing parenthesis.
 ## Don't
 
 ```rust
-// rabot: allow(sort-fields) drop order matters
+{{#include unknown-rule/bad.rs}}
 ```
 
 A typo would otherwise be a silent no-op: the comment looks like an
@@ -19,7 +19,7 @@ exception and does nothing.
 ## Do
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters
+{{#include unknown-rule/good.rs}}
 ```
 
 `rabot rules` lists every name.

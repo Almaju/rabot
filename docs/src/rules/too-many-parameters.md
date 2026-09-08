@@ -14,17 +14,13 @@ Methods inside `impl Trait for T` are skipped.
 ## Don't
 
 ```rust
-fn render(title: &str, width: u32, height: u32, dpi: u32, margin: u32,
-          font: &Font, color: Color, background: Color) -> Image { .. }
+{{#include too-many-parameters/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-struct Canvas { dpi: u32, height: u32, margin: u32, width: u32 }
-struct Style { background: Color, color: Color, font: Font }
-
-fn render(title: &str, canvas: &Canvas, style: &Style) -> Image { .. }
+{{#include too-many-parameters/good.rs}}
 ```
 
 Parameters that travel together are a struct waiting to be named. Once

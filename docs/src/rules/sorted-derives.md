@@ -13,15 +13,13 @@ give you, and nobody writes it that way.
 ## Don't
 
 ```rust
-#[derive(Serialize, Debug, Eq, Clone, PartialEq, Ord, PartialOrd, Copy, Hash)]
-struct UserId(String);
+{{#include sorted-derives/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-struct UserId(String);
+{{#include sorted-derives/good.rs}}
 ```
 
 ## Options

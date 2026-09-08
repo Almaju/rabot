@@ -2,4 +2,4 @@
 # to live by its own principles.
 
 [files]
-exclude = ["target", "tests/fixtures"]
+exclude = ["docs", "target", "tests/fixtures"]

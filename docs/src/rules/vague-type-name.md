@@ -15,9 +15,7 @@ A struct, enum, trait or type alias whose name ends in `Service`, `Manager`,
 ## Don't
 
 ```rust
-struct UserService { db: Database }
-struct UserRepository { db: Database }
-struct UserManager { .. } // added six months ago; nobody knows why
+{{#include vague-type-name/bad.rs}}
 ```
 
 You need to ban a user. Which one owns it? You pick one, ship it, and eight
@@ -26,13 +24,7 @@ months later there are two `ban_user`s.
 ## Do
 
 ```rust
-struct User { .. }
-struct Store { .. }
-
-impl User {
-    fn ban(self) -> Self { .. }
-    async fn save(&self, store: &Store) -> Result<(), SaveError> { .. }
-}
+{{#include vague-type-name/good.rs}}
 ```
 
 Tell a colleague what you shipped: "the API and the todos". Those are the

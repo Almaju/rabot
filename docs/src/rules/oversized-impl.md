@@ -12,22 +12,13 @@ The inherent impls of one type, in one file, hold more than 20 methods.
 ## Don't
 
 ```rust
-impl User {
-    fn ban(..) { .. }
-    fn charge(..) { .. }
-    fn invoice(..) { .. }
-    fn notify(..) { .. }
-    fn unsubscribe(..) { .. }
-    // ... 22 more
-}
+{{#include oversized-impl/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-impl User { fn ban(..) { .. } .. }
-impl BillingProfile { fn charge(..) { .. } fn invoice(..) { .. } .. }
-impl NotificationSettings { fn notify(..) { .. } fn unsubscribe(..) { .. } .. }
+{{#include oversized-impl/good.rs}}
 ```
 
 Ask which methods operate on a subset of the fields. That subset is its own

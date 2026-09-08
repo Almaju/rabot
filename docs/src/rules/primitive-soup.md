@@ -15,23 +15,13 @@ the trait's.
 ## Don't
 
 ```rust
-fn send_invoice(user_id: String, email: String, invoice_id: String) {
-    send_email(&user_id, &invoice_id); // swapped
-    log_access(&invoice_id, &email);   // wrong order
-}
+{{#include primitive-soup/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-struct UserId(String);
-struct Email(String);
-struct InvoiceId(String);
-
-fn send_invoice(user_id: UserId, email: Email, invoice_id: InvoiceId) {
-    send_email(&user_id, &invoice_id); // compile error
-    log_access(&invoice_id, &email);   // compile error
-}
+{{#include primitive-soup/good.rs}}
 ```
 
 You write the type once. The build catches the swap instead of the review.

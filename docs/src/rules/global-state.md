@@ -15,13 +15,7 @@ default: a logger is infrastructure nobody swaps in tests.
 ## Don't
 
 ```rust
-static DATABASE: OnceLock<Database> = OnceLock::new();
-
-impl User {
-    async fn load(id: &UserId) -> Result<User, LoadError> {
-        DATABASE.get().unwrap().query(..).await // hidden dependency
-    }
-}
+{{#include global-state/bad.rs}}
 ```
 
 Zero constructor parameters. Looks simple. Until two tests run in parallel
@@ -30,17 +24,7 @@ against the same global, or you need to point it at another database.
 ## Do
 
 ```rust
-struct Users { db: Database }
-
-impl Users {
-    async fn load(&self, id: &UserId) -> Result<User, LoadError> {
-        self.db.query(..).await
-    }
-}
-
-// main.rs: every dependency constructed in one place
-let db = Database::connect(&config.db_url).await?;
-let users = Users { db: db.clone() };
+{{#include global-state/good.rs}}
 ```
 
 Exactly as complex as it actually is, and checked at compile time.

@@ -16,12 +16,7 @@ Three shapes that make a failure disappear:
 ## Don't
 
 ```rust
-match cache.invalidate(&key) {
-    Ok(()) => {}
-    Err(_) => {} // shouldn't happen
-}
-
-std::fs::remove_file(&tmp).ok();
+{{#include swallowed-error/bad.rs}}
 ```
 
 It happened. The comment lied. Somebody will spend four hours finding which
@@ -30,11 +25,7 @@ branch swallowed it.
 ## Do
 
 ```rust
-if let Err(error) = cache.invalidate(&key) {
-    warn!(%key, %error, "cache entry survives invalidation; serving stale until TTL");
-}
-
-std::fs::remove_file(&tmp)?;
+{{#include swallowed-error/good.rs}}
 ```
 
 Propagate it, or log it with the context the reader at 3am needs. Either

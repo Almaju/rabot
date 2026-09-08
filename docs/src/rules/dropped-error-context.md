@@ -14,7 +14,7 @@ message, is gone before anyone reads it.
 ## Don't
 
 ```rust
-let config = std::fs::read_to_string(path).map_err(|_| ConfigError::Unreadable)?;
+{{#include dropped-error-context/bad.rs}}
 ```
 
 "Config unreadable." Which file? Permission denied, or not found, or a
@@ -23,12 +23,7 @@ directory? The error that knew is gone.
 ## Do
 
 ```rust
-enum ConfigError {
-    Unreadable { path: PathBuf, #[source] source: std::io::Error },
-}
-
-let config = std::fs::read_to_string(&path)
-    .map_err(|source| ConfigError::Unreadable { path: path.clone(), source })?;
+{{#include dropped-error-context/good.rs}}
 ```
 
 Or with `thiserror`, `#[from]` and `?` do it without a closure at all. The

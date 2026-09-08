@@ -16,9 +16,7 @@ abort, and test code (see [Test code](../tests.md)).
 ## Don't
 
 ```rust
-fn get_user(id: &UserId, db: &Database) -> User {
-    db.query("SELECT ...", id).unwrap()
-}
+{{#include panic-in-production/bad.rs}}
 ```
 
 The signature promises a `User`. It cannot keep that promise, and the caller
@@ -27,17 +25,11 @@ has no way to know.
 ## Do
 
 ```rust
-fn get_user(id: &UserId, db: &Database) -> Result<User, NotFoundError> {
-    db.query("SELECT ...", id).ok_or(NotFoundError { user_id: id.clone() })
-}
+{{#include panic-in-production/good.rs}}
 ```
 
-```rust
-// Startup: the program cannot run without these. Panicking is honest here.
-fn main() {
-    let config = load_config().expect("config file required for startup");
-}
-```
+Startup is the exception: the program cannot run without its config, and
+`main` is the one place where panicking is honest.
 
 ## Silence it
 

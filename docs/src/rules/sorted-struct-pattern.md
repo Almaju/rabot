@@ -11,19 +11,13 @@ stays last.
 ## Don't
 
 ```rust
-let User { name, email, .. } = user;
-match event {
-    Event::Moved { to, from, at } => ..,
-}
+{{#include sorted-struct-pattern/bad.rs}}
 ```
 
 ## Do
 
 ```rust
-let User { email, name, .. } = user;
-match event {
-    Event::Moved { at, from, to } => ..,
-}
+{{#include sorted-struct-pattern/good.rs}}
 ```
 
 ## Silence it

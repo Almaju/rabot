@@ -15,10 +15,7 @@ a boxed error, or nothing.
 ## Don't
 
 ```rust
-enum PaymentError {
-    CardDeclined { reason: DeclineReason },
-    Other(String),
-}
+{{#include escape-hatch-variant/bad.rs}}
 ```
 
 Six months later `Other` carries network timeouts, a provider outage, a
@@ -28,11 +25,7 @@ guesses at everything else.
 ## Do
 
 ```rust
-enum PaymentError {
-    CardDeclined { reason: DeclineReason },
-    CurrencyMismatch { expected: Currency, got: Currency },
-    Provider { retry_after: Option<Duration>, #[source] source: ProviderError },
-}
+{{#include escape-hatch-variant/good.rs}}
 ```
 
 Each variant is a decision the caller can make. Adding a failure mode means

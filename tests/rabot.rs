@@ -249,3 +249,82 @@ fn changed_scope_follows_git() {
     );
     std::fs::remove_dir_all(&dir).ok();
 }
+
+/// The examples next to each rule's page: `docs/src/rules/<rule>/bad.rs`
+/// breaks exactly that rule and `good.rs` breaks none. The page includes
+/// both verbatim, so the published examples are the ones under test.
+fn rule_example(rule: Rule, file: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("docs/src/rules")
+        .join(rule.name())
+        .join(file)
+}
+
+/// Lints one example on its own: local types are collected from the files
+/// in scope, so checking a whole directory would let a `User` in one rule's
+/// example turn a free function in another's into a finding.
+fn rule_findings(path: &Path) -> Vec<(Rule, usize)> {
+    let root = path.parent().expect("fixture has a directory").to_path_buf();
+    let app = App::new(Config::default(), root);
+    let outcome = app
+        .check(&Scope::Paths(vec![path.to_path_buf()]))
+        .expect("check runs");
+    outcome
+        .diagnostics
+        .iter()
+        .map(|diagnostic| (diagnostic.rule, diagnostic.position.line))
+        .collect()
+}
+
+#[test]
+fn every_rule_has_a_bad_example_that_breaks_only_that_rule() {
+    for rule in Rule::all() {
+        let findings = rule_findings(&rule_example(*rule, "bad.rs"));
+        assert!(
+            findings.iter().any(|(found, _)| found == rule),
+            "{rule}: bad.rs does not trigger the rule; found {findings:?}"
+        );
+        let others: Vec<_> = findings.iter().filter(|(found, _)| found != rule).collect();
+        assert!(
+            others.is_empty(),
+            "{rule}: bad.rs must break only its own rule, but also raised {others:?}"
+        );
+    }
+}
+
+#[test]
+fn every_rule_has_a_good_example_that_is_silent() {
+    for rule in Rule::all() {
+        let findings = rule_findings(&rule_example(*rule, "good.rs"));
+        assert!(
+            findings.is_empty(),
+            "{rule}: good.rs should be clean; found {findings:?}"
+        );
+    }
+}
+
+#[test]
+fn fmt_turns_every_bad_sorting_example_into_the_good_one() {
+    let dir = std::env::temp_dir().join(format!("rabot-rules-fmt-{}", std::process::id()));
+    for rule in Rule::all().iter().filter(|rule| rule.fixable()) {
+        let scratch = dir.join(rule.name());
+        std::fs::create_dir_all(&scratch).expect("temp dir");
+        let target = scratch.join("bad.rs");
+        std::fs::copy(rule_example(*rule, "bad.rs"), &target).expect("copy example");
+
+        let app = App::new(Config::default(), scratch.clone());
+        let outcome = app
+            .format(&Scope::Paths(vec![target.clone()]), FormatMode::Write)
+            .expect("fmt runs");
+        assert_eq!(outcome.changed.len(), 1, "{rule}: fmt changes the bad example");
+        let formatted = std::fs::read_to_string(&target).expect("read result");
+        let expected = std::fs::read_to_string(rule_example(*rule, "good.rs")).expect("read good");
+        assert_eq!(formatted, expected, "{rule}: fmt on bad.rs must produce good.rs");
+
+        let again = app
+            .format(&Scope::Paths(vec![target]), FormatMode::Check)
+            .expect("second fmt runs");
+        assert!(again.changed.is_empty(), "{rule}: fmt is not idempotent");
+    }
+    std::fs::remove_dir_all(&dir).ok();
+}
