@@ -28,3 +28,15 @@ jobs:
         run: |
           cargo run -q -- fmt --check src
           cargo run -q -- check --strict src
+
+  # Run the published action from this checkout, exactly as a downstream
+  # workflow would. GitHub parses action.yml, install.sh fetches the latest
+  # release, and the composite steps lint this repository with the defaults.
+  # It tests the action wrapper, not this commit's Rust code; the job above
+  # covers that.
+  action:
+    name: GitHub Action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
