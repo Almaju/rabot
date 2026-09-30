@@ -91,7 +91,7 @@ impl Sorter<'_> {
             first.key.original(),
         );
         let help = if candidate.fixable {
-            "run `rabot fmt` to reorder, or document the exception with `// rabot: allow(...) reason`"
+            "run `rabot fmt` to reorder, or document the exception with `// allow(...) reason`"
         } else {
             "reorder by hand: the initializers may have side effects, so rabot will not move them"
         };

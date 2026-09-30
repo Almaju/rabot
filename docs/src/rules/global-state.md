@@ -39,6 +39,6 @@ allowed-names = ["LOG"]   # substring match, case-insensitive
 ## Silence it
 
 ```rust
-// rabot: allow(global-state) compiled-once regex; a pure value, never swapped
+// allow(global-state) compiled-once regex; a pure value, never swapped
 static EMAIL: LazyLock<Regex> = LazyLock::new(|| Regex::new(..).unwrap());
 ```

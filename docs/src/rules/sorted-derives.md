@@ -40,6 +40,6 @@ With that setting the example becomes
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-derives) the proc macro must see Builder before Default
+// allow(sorted-derives) the proc macro must see Builder before Default
 #[derive(Builder, Default)]
 ```

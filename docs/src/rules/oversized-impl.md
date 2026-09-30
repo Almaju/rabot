@@ -34,6 +34,6 @@ oversized-impl = 20
 ## Silence it
 
 ```rust
-// rabot: allow(oversized-impl) builder: one method per option is the whole point
+// allow(oversized-impl) builder: one method per option is the whole point
 impl CommandBuilder { .. }
 ```

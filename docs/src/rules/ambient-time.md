@@ -35,5 +35,5 @@ historical scenario.
 ## Silence it
 
 ```rust
-let started = Instant::now(); // rabot: allow(ambient-time) request timing for the log line; nothing branches on it
+let started = Instant::now(); // allow(ambient-time) request timing for the log line; nothing branches on it
 ```

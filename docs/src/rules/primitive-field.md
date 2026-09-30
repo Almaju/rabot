@@ -46,6 +46,6 @@ boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
 ## Silence it
 
 ```rust
-// rabot: allow(primitive-field) mirrors the vendor's CSV columns; parsed into Reading right after
+// allow(primitive-field) mirrors the vendor's CSV columns; parsed into Reading right after
 struct RawReading { latitude: f64, longitude: f64 }
 ```

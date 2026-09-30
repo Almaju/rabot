@@ -171,7 +171,7 @@ Sorting still applies, and so do the comment rules, `mock-usage`,
 > You can break the rule. You must document the exception.
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters: the guard must release first
+// allow(sorted-fields) drop order matters: the guard must release first
 struct Connection {
     guard: MutexGuard<'static, ()>,
     channel: Channel,
@@ -179,8 +179,14 @@ struct Connection {
 ```
 
 The comment silences the named rules for the item that follows it (or, as a
-trailing comment, for its own line). `// rabot: allow-file(rule) reason`
-covers the whole file.
+trailing comment, for its own line). `// allow-file(rule) reason` covers the
+whole file.
+
+The comment does not mention rabot. In an open-source codebase where only
+some contributors run it, it reads as a plain note on why the code is the way
+it is, not as configuration for a tool the project never adopted. A bare
+`// allow(..)` counts only when it names at least one rabot rule. Write
+`// rabot: allow(..)` if you prefer the tool to be explicit; both forms work.
 
 The reason is not optional. An allow comment without one is reported as
 `undocumented-exception`, at error level. A rule name rabot does not know is

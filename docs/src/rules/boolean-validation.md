@@ -29,6 +29,6 @@ past this line checks the email again.
 ## Silence it
 
 ```rust
-// rabot: allow(boolean-validation) a pure predicate used in a filter; there is no caller to inform
+// allow(boolean-validation) a pure predicate used in a filter; there is no caller to inform
 fn is_valid_utf8(bytes: &[u8]) -> bool { .. }
 ```

@@ -23,5 +23,5 @@ stays last.
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-struct-pattern) mirrors the wire order documented in RFC-12
+// allow(sorted-struct-pattern) mirrors the wire order documented in RFC-12
 ```

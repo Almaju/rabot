@@ -41,7 +41,7 @@ vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
 ## Silence it
 
 ```rust
-// rabot: allow(vague-type-name) implements the DDD Repository contract: the domain never sees SQL
+// allow(vague-type-name) implements the DDD Repository contract: the domain never sees SQL
 struct OrderRepository { .. }
 ```
 

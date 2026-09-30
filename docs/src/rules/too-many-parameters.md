@@ -37,5 +37,5 @@ too-many-parameters = 7
 ## Silence it
 
 ```rust
-// rabot: allow(too-many-parameters) mirrors the C ABI of libfoo_render exactly
+// allow(too-many-parameters) mirrors the C ABI of libfoo_render exactly
 ```

@@ -33,7 +33,7 @@ needs no explaining. Implementation details last.
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-impl-items) distance_to and is_near are inseparable: is_near wraps distance_to
+// allow(sorted-impl-items) distance_to and is_near are inseparable: is_near wraps distance_to
 impl GpsCoordinates {
     fn distance_to(&self, other: &Self) -> Distance { .. }
     fn is_near(&self, other: &Self, radius: Distance) -> bool { .. }

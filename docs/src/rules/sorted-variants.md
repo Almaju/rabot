@@ -33,6 +33,6 @@ An enum whose order carries meaning usually says so already: derive
 it down:
 
 ```rust
-// rabot: allow(sorted-variants) matches the on-wire protocol numbering
+// allow(sorted-variants) matches the on-wire protocol numbering
 enum Opcode { Connect, Publish, Subscribe, Disconnect }
 ```

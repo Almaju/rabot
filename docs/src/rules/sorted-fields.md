@@ -44,7 +44,7 @@ struct User {
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters: the guard must release before the pool
+// allow(sorted-fields) drop order matters: the guard must release before the pool
 struct Connection {
     guard: MutexGuard<'static, ()>,
     pool: Pool,

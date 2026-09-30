@@ -33,5 +33,5 @@ the first request that reaches that code path.
 ## Silence it
 
 ```rust
-// rabot: allow(ambient-config) RUST_LOG is the logger's own contract, read by the logging crate
+// allow(ambient-config) RUST_LOG is the logger's own contract, read by the logging crate
 ```

@@ -6,7 +6,7 @@
 
 ## What it checks
 
-A `// rabot: allow(..)` or `// rabot: allow-file(..)` comment with nothing
+A `// allow(..)` or `// allow-file(..)` comment with nothing
 after the parenthesis.
 
 ## Don't

@@ -5,7 +5,8 @@ use crate::rule::Rule;
 
 const PREFIX: &str = "rabot:";
 
-/// A documented exception: `// rabot: allow(rule, other-rule) because ...`.
+/// A documented exception: `// allow(rule, other-rule) because ...`, or
+/// `// rabot: allow(..) ...` to name the tool.
 ///
 /// The reason is mandatory. An exception that lives only in someone's head is
 /// not an exception; it is chaos with better intentions.
@@ -35,6 +36,26 @@ pub struct Scope {
     pub start_line: usize,
 }
 
+/// How an allow comment was spelled.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Form {
+    /// `// allow(rule) reason`: no tool named, so the comment reads as plain
+    /// prose in a codebase that does not use rabot. Only a comment naming at
+    /// least one rabot rule counts; anything else is somebody else's comment.
+    Bare,
+    /// `// rabot: allow(rule) reason`: always a directive, so every mistake
+    /// in it is reported.
+    Prefixed,
+}
+
+/// Whether a comment's text is spelled like an allow comment, in either
+/// form. Comment rules skip these: an exception is neither code nor a
+/// section header.
+pub fn is_directive(text: &str) -> bool {
+    let text = text.trim();
+    text.contains(PREFIX) || text.starts_with("allow(") || text.starts_with("allow-file(")
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Allowances {
     items: Vec<Allowance>,
@@ -45,10 +66,12 @@ impl Allowances {
     pub fn parse(comments: &Comments) -> Self {
         let mut allowances = Allowances::default();
         for comment in comments.iter().filter(|comment| !comment.is_doc()) {
-            let Some(directive) = comment.text.trim().strip_prefix(PREFIX) else {
-                continue;
-            };
-            allowances.parse_directive(directive.trim(), comment.line);
+            let text = comment.text.trim();
+            if let Some(directive) = text.strip_prefix(PREFIX) {
+                allowances.parse_directive(directive.trim(), comment.line, Form::Prefixed);
+            } else if text.starts_with("allow(") || text.starts_with("allow-file(") {
+                allowances.parse_directive(text, comment.line, Form::Bare);
+            }
         }
         allowances
     }
@@ -91,7 +114,7 @@ impl Allowances {
         &self.problems
     }
 
-    fn parse_directive(&mut self, directive: &str, line: usize) {
+    fn parse_directive(&mut self, directive: &str, line: usize, form: Form) {
         let (keyword, rest) = match directive.find('(') {
             Some(open) => (directive[..open].trim(), &directive[open..]),
             None => (directive, ""),
@@ -111,19 +134,25 @@ impl Allowances {
             }
         };
         let Some(close) = rest.find(')') else {
-            self.problems.push(Problem {
-                line,
-                message: "allow comment is missing its closing `)`".to_string(),
-                rule: Rule::UnknownRule,
-            });
+            if form == Form::Prefixed {
+                self.problems.push(Problem {
+                    line,
+                    message: "allow comment is missing its closing `)`".to_string(),
+                    rule: Rule::UnknownRule,
+                });
+            }
             return;
         };
-        let mut rules = Vec::new();
-        for name in rest[1..close]
+        let names: Vec<&str> = rest[1..close]
             .split(',')
             .map(str::trim)
             .filter(|name| !name.is_empty())
-        {
+            .collect();
+        if form == Form::Bare && !names.iter().any(|name| Rule::parse(name).is_some()) {
+            return;
+        }
+        let mut rules = Vec::new();
+        for name in names {
             match Rule::parse(name) {
                 Some(rule) => rules.push(rule),
                 None => self.problems.push(Problem {
@@ -223,6 +252,41 @@ mod tests {
     fn file_wide_allowance() {
         let allowances = parse("// rabot: allow-file(mock-usage) legacy suite\n\nfn a() {}");
         assert!(allowances.covers(Rule::MockUsage, 300));
+    }
+
+    #[test]
+    fn bare_allowance_needs_no_tool_name() {
+        let allowances = parse("// allow(sorted-fields, free-function): drop order matters\nstruct A;");
+        assert_eq!(allowances.problems(), &[]);
+        let items: Vec<_> = allowances.iter().collect();
+        assert_eq!(items[0].rules, vec![Rule::SortedFields, Rule::FreeFunction]);
+        assert_eq!(items[0].reason, "drop order matters");
+        assert!(allowances.covers(Rule::SortedFields, 2));
+        let file_wide = parse("// allow-file(mock-usage) legacy suite\n\nfn a() {}");
+        assert!(file_wide.covers(Rule::MockUsage, 300));
+    }
+
+    #[test]
+    fn bare_allowance_is_checked_once_it_names_a_rule() {
+        let undocumented = parse("// allow(sorted-fields)\nstruct A;");
+        assert_eq!(undocumented.problems()[0].rule, Rule::UndocumentedException);
+        let typo = parse("// allow(sorted-fields, sorted-feilds) order is semantic\nstruct A;");
+        assert_eq!(typo.problems().len(), 1);
+        assert_eq!(typo.problems()[0].rule, Rule::UnknownRule);
+        assert!(typo.covers(Rule::SortedFields, 2));
+    }
+
+    #[test]
+    fn bare_comment_without_a_rabot_rule_is_not_a_directive() {
+        for source in [
+            "// allow(dead_code) is set in the build script\nstruct A;",
+            "// allow(unknown-thing)\nstruct A;",
+            "// allow(sorted-fields\nstruct A;",
+        ] {
+            let allowances = parse(source);
+            assert_eq!(allowances.problems(), &[], "{source}");
+            assert_eq!(allowances.iter().count(), 0, "{source}");
+        }
     }
 
     #[test]
