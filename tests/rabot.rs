@@ -328,3 +328,52 @@ fn fmt_turns_every_bad_sorting_example_into_the_good_one() {
     }
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[test]
+fn packages_narrow_a_workspace_run() {
+    let dir = std::env::temp_dir().join(format!("rabot-workspace-{}", std::process::id()));
+    let write = |relative: &str, text: &str| {
+        let path = dir.join(relative);
+        std::fs::create_dir_all(path.parent().expect("parent")).expect("dir");
+        std::fs::write(path, text).expect("write");
+    };
+    write(
+        "Cargo.toml",
+        "[package]\nname = \"app\"\n\n[workspace]\nmembers = [\"crates/*\"]\n",
+    );
+    write("src/main.rs", "pub struct A { b: u8, a: u8 }\n");
+    write("crates/core/Cargo.toml", "[package]\nname = \"core\"\n");
+    write("crates/core/src/lib.rs", "pub struct B { b: u8, a: u8 }\n");
+    write("crates/cli/Cargo.toml", "[package]\nname = \"cli\"\n");
+    write("crates/cli/src/lib.rs", "pub struct C { b: u8, a: u8 }\n");
+
+    let files_of = |packages: &[&str]| {
+        let app = App::new(Config::default(), dir.clone())
+            .with_packages(packages.iter().map(|name| name.to_string()).collect());
+        let outcome = app.check(&Scope::Paths(Vec::new())).expect("check runs");
+        let mut files: Vec<PathBuf> = outcome.diagnostics.iter().map(|d| d.path.clone()).collect();
+        files.sort();
+        files.dedup();
+        files
+    };
+    assert_eq!(files_of(&["core"]), vec![dir.join("crates/core/src/lib.rs")]);
+    assert_eq!(
+        files_of(&["app"]),
+        vec![dir.join("src/main.rs")],
+        "the root package does not own its members' files"
+    );
+    assert_eq!(files_of(&["cli", "core"]).len(), 2);
+    assert_eq!(files_of(&[]).len(), 3);
+
+    let explicit = App::new(Config::default(), dir.clone())
+        .with_packages(vec!["core".to_string()])
+        .check(&Scope::Paths(vec![dir.join("crates")]))
+        .expect("check runs");
+    assert_eq!(explicit.files_seen, 1, "explicit paths are narrowed too");
+
+    let unknown = App::new(Config::default(), dir.clone())
+        .with_packages(vec!["nope".to_string()])
+        .check(&Scope::Paths(Vec::new()));
+    assert!(unknown.is_err());
+    std::fs::remove_dir_all(&dir).ok();
+}
