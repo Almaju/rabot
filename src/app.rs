@@ -6,6 +6,7 @@ use crate::config::{Config, ConfigError};
 use crate::diagnostic::{Diagnostic, Level, Position};
 use crate::edit::{EditError, Edits};
 use crate::file_set::{FileSet, FileSetError, Scope};
+use crate::module_graph::ModuleGraph;
 use crate::rule::Rule;
 use crate::rules::{Context, Findings, LocalTypes};
 use crate::source_file::SourceFile;
@@ -100,8 +101,9 @@ impl App {
         let mut outcome = Outcome::default();
         let files = self.parse_all(scope, &mut outcome)?;
         let local_types = LocalTypes::collect(&files);
+        let module_graph = self.module_graph(&files);
         for file in &files {
-            let findings = self.findings(file, &local_types);
+            let findings = self.findings(file, &local_types, &module_graph);
             outcome.diagnostics.extend(findings.diagnostics);
         }
         Ok(outcome.finish())
@@ -113,12 +115,13 @@ impl App {
         let mut outcome = Outcome::default();
         let files = self.parse_all(scope, &mut outcome)?;
         let local_types = LocalTypes::collect(&files);
+        let module_graph = self.module_graph(&files);
         for file in files {
             let path = file.path.clone();
             let mut current = file;
             let mut first_diagnostics = None;
             for _ in 0..MAX_PASSES {
-                let findings = self.findings(&current, &local_types);
+                let findings = self.findings(&current, &local_types, &module_graph);
                 let sorting: Vec<Diagnostic> = findings
                     .diagnostics
                     .into_iter()
@@ -184,13 +187,24 @@ impl App {
         Ok(outcome.finish())
     }
 
-    fn findings(&self, file: &SourceFile, local_types: &LocalTypes) -> Findings {
+    fn findings(&self, file: &SourceFile, local_types: &LocalTypes, module_graph: &ModuleGraph) -> Findings {
         let cx = Context {
             config: &self.config,
             file,
             local_types,
+            module_graph,
         };
         cx.run_all()
+    }
+
+    /// The module graph costs a read of every crate in scope; skip it when
+    /// nothing would report from it.
+    fn module_graph(&self, files: &[SourceFile]) -> ModuleGraph {
+        if self.config.level(Rule::ModuleCycle) == Level::Allow {
+            ModuleGraph::default()
+        } else {
+            ModuleGraph::build(files)
+        }
     }
 
     fn parse_all(&self, scope: &Scope, outcome: &mut Outcome) -> Result<Vec<SourceFile>, AppError> {

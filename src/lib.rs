@@ -12,6 +12,8 @@ pub mod diagnostic;
 pub mod edit;
 pub mod file_set;
 pub mod hook;
+pub mod level;
+pub mod module_graph;
 pub mod ordering;
 pub mod report;
 pub mod rule;

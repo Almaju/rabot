@@ -30,6 +30,7 @@ be changed in `rabot.toml`.
 | [escape-hatch-variant](escape-hatch-variant.md) | warn | | Treat errors as data |
 | [global-state](global-state.md) | warn | | Dependencies in the signature |
 | [ambient-config](ambient-config.md) | warn | | Dependencies in the signature |
+| [module-cycle](module-cycle.md) | warn | | Dependencies in the signature |
 | [mock-usage](mock-usage.md) | warn | | Real implementations, not mocks |
 | [ignored-test](ignored-test.md) | warn | | Write down every exception |
 | [ambient-time](ambient-time.md) | warn | | Make the clock injectable |

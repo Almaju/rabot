@@ -3,6 +3,7 @@
 
 pub mod ambient;
 pub mod comments;
+pub mod cycles;
 pub mod dependencies;
 pub mod errors;
 pub mod naming;
@@ -19,6 +20,7 @@ use syn::visit::Visit;
 use crate::config::Config;
 use crate::diagnostic::{Diagnostic, Level};
 use crate::edit::Edit;
+use crate::module_graph::ModuleGraph;
 use crate::rule::Rule;
 use crate::source_file::SourceFile;
 
@@ -27,16 +29,21 @@ pub struct Context<'a> {
     pub config: &'a Config,
     pub file: &'a SourceFile,
     pub local_types: &'a LocalTypes,
+    pub module_graph: &'a ModuleGraph,
 }
 
 impl Context<'_> {
     /// Build a diagnostic unless the rule is allowed, globally or right here.
     pub fn diagnostic(&self, rule: Rule, span: Span, message: String) -> Option<Diagnostic> {
+        self.diagnostic_at(rule, self.file.range(span).start, message)
+    }
+
+    /// [`Context::diagnostic`] for a byte offset rather than a span.
+    pub fn diagnostic_at(&self, rule: Rule, offset: usize, message: String) -> Option<Diagnostic> {
         let level = self.config.level(rule);
         if level == Level::Allow {
             return None;
         }
-        let offset = self.file.range(span).start;
         if self.config.tests.relax.contains(&rule) && self.file.test_regions.contains(offset) {
             return None;
         }
@@ -133,6 +140,7 @@ pub fn all() -> Vec<Box<dyn Check>> {
     vec![
         Box::new(ambient::Ambient),
         Box::new(comments::Comments),
+        Box::new(cycles::Cycles),
         Box::new(dependencies::Dependencies),
         Box::new(errors::Errors),
         Box::new(naming::Naming),

@@ -127,6 +127,7 @@ decision, not yours. They still apply to the trait definition itself.
 | Rule | Principle |
 | --- | --- |
 | `global-state` | [Dependencies](https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies): a `static` with interior mutability is a dependency hidden from every signature. A logger is fine. |
+| `module-cycle` | [Dependencies](https://almaju.github.io/blog/docs/fundamentals/architecture/dependencies): `ffi` uses `worker` and `worker` uses a type from `ffi`. If main exposes A and A uses B, B must not use A. |
 | `ignored-test` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `#[ignore]` without a reason. In six months nobody knows why three tests are skipped. `#[ignore = "why"]` is fine. |
 | `ambient-time` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `Utc::now()` inside the logic; nothing can freeze time to test it. Inject a `Clock`. |
 | `ambient-randomness` | [Tests](https://almaju.github.io/blog/docs/fundamentals/architecture/testing): `rand::random()` from a global generator; the failure cannot be replayed. Inject the `Rng`. |
