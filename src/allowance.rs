@@ -63,7 +63,7 @@ impl Allowances {
             if let Some(directive) = comment.text.trim().strip_prefix(PREFIX) {
                 allowances.parse_directive(directive.trim(), comment.line);
             } else if let Some(reason) = marked_reason(&comment.text)
-                && !continues_previous(&comments[..index], comment)
+                && !comment.continues(comments[..index].last().copied())
             {
                 allowances.parse_prose(reason, comment.line, &comments[index + 1..]);
             }
@@ -202,15 +202,6 @@ impl Allowances {
 /// rules skip these: an exception is neither code nor a section header.
 pub fn is_exception(text: &str) -> bool {
     text.contains(PREFIX) || marked_reason(text).is_some()
-}
-
-/// Whether `comment` is a later line of a `//` comment that started above
-/// it: a marker in the middle of someone's sentence is not an exception.
-fn continues_previous(before: &[&Comment], comment: &Comment) -> bool {
-    comment.is_line()
-        && before
-            .last()
-            .is_some_and(|previous| previous.is_line() && previous.line + 1 == comment.line)
 }
 
 /// The text after a leading marker ("Intentionally", "By design", ...),
