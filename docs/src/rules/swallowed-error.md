@@ -34,6 +34,6 @@ way, the failure leaves a trace.
 ## Silence it
 
 ```rust
-// allow(swallowed-error) best-effort cleanup of a temp file; the OS reclaims it anyway
+// rabot: allow(swallowed-error) best-effort cleanup of a temp file; the OS reclaims it anyway
 std::fs::remove_file(&tmp).ok();
 ```

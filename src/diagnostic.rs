@@ -8,7 +8,7 @@ use crate::rule::Rule;
 /// How loudly a rule speaks.
 ///
 /// Variant order is semantic (`Allow < Warn < Error`) so it can be compared.
-// allow(sorted-variants) ordering is semantic and used for comparisons
+// rabot: allow(sorted-variants) ordering is semantic and used for comparisons
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Level {

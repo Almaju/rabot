@@ -6,8 +6,12 @@
 
 ## What it checks
 
-A `// allow(..)` or `// allow-file(..)` comment with nothing
+A `// rabot: allow(..)` or `// rabot: allow-file(..)` comment with nothing
 after the parenthesis.
+
+A plain comment such as `// Intentionally empty` is not reported: it never
+became an exception, because a marker needs a reason after it (see
+[Exceptions](../exceptions.md)). The rule it meant to silence still fires.
 
 ## Don't
 

@@ -2,55 +2,64 @@
 
 > You can break the rule. You must document the exception.
 
-Every rule can be silenced for one item with a comment that names the rule
-and says why:
+## Say it the way you would anyway
+
+When code breaks a principle on purpose, the honest thing is a comment
+saying so. rabot reads that comment:
 
 ```rust
-// allow(sorted-fields) drop order matters: the guard must release first
+// Deliberately unsorted: the guard must release before the channel closes.
 struct Connection {
     guard: MutexGuard<'static, ()>,
     channel: Channel,
 }
 ```
 
-The comment covers the item that follows it: the whole struct, the whole
-function body, the whole impl. As a trailing comment it covers its own line:
+A comment that opens with **Deliberately**, **Intentionally**, **On
+purpose** or **By design** (any case, `Deliberate:` and `Intentional:` too)
+and then gives a reason is an exception. It covers the item that follows it:
+the whole struct, the whole function body, the whole impl. As a trailing
+comment it covers its own line:
 
 ```rust
-let port = env::var("PORT").unwrap(); // allow(panic-in-production) validated by the deploy script
+let port = env::var("PORT").unwrap(); // Intentional: the deploy script validates PORT.
 ```
 
-Several rules at once, and the whole file:
+The reason can wrap onto the `//` lines below. The comment silences every
+rabot rule on that item: it documents a decision about the code, not about a
+tool.
 
-```rust
-// allow(free-function, primitive-soup) FFI surface mirrors the C header
-// allow-file(mock-usage) legacy suite, being replaced under TEST-88
-```
+Nothing in it mentions rabot. That matters in an open-source codebase where
+rabot is one contributor's linter rather than the project's: the comment
+reads as a plain note to the next maintainer, and nobody has to ask in
+review what `rabot` is.
 
-## No tool name in the code
+What does not count:
 
-The comment names the rule and the reason, not the tool. rabot is often run
-by one contributor on a codebase that has not adopted it; a
-`// allow(panic-in-production) the lock is never poisoned` there reads as an
-ordinary note about the code, and nobody has to explain what rabot is in
-review.
+- a marker with no reason: `// Intentionally empty` says the choice was made,
+  not why. At least three words have to follow the marker;
+- a marker in the middle of a sentence (`// This is intentional ...`) or on
+  the second line of a comment;
+- doc comments (`///`): they are for the item's users, not its maintainers.
 
-A bare `// allow(..)` is an allow comment only when it names at least one
-rabot rule, so comments meant for other tools or other people are left
-alone. When you want the directive to be unambiguous, prefix it:
+## Naming the rule
+
+When you want to be precise about what is silenced, name the rules:
 
 ```rust
 // rabot: allow(sorted-fields) drop order matters: the guard must release first
 ```
 
-Both forms silence the same things. The prefixed form is always a
-directive, so a misspelled lone rule name in it is reported as
-[`unknown-rule`](rules/unknown-rule.md); in the bare form it is just a
-comment.
+Several rules at once, and the whole file:
+
+```rust
+// rabot: allow(free-function, primitive-soup) FFI surface mirrors the C header
+// rabot: allow-file(mock-usage) legacy suite, being replaced under TEST-88
+```
 
 ## The reason is not optional
 
-An allow comment without a reason is itself reported, at error level, as
+A `rabot: allow` comment without a reason is itself reported, at error level, as
 [`undocumented-exception`](rules/undocumented-exception.md). A rule name
 rabot does not know is [`unknown-rule`](rules/unknown-rule.md). The point of
 the comment is the sentence after the parenthesis: the next reader, or you in

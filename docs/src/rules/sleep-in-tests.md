@@ -32,5 +32,5 @@ exact.
 ## Silence it
 
 ```rust
-// allow(sleep-in-tests) exercises the real timeout path against the in-process server
+// rabot: allow(sleep-in-tests) exercises the real timeout path against the in-process server
 ```

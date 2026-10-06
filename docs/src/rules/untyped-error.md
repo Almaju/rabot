@@ -35,6 +35,6 @@ handling, they are one variant.
 ## Silence it
 
 ```rust
-// allow(untyped-error) CLI entry point: every failure ends in the same exit code and message
+// rabot: allow(untyped-error) CLI entry point: every failure ends in the same exit code and message
 fn run(args: Args) -> Result<(), Box<dyn Error>> { .. }
 ```

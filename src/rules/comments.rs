@@ -50,7 +50,7 @@ impl CommentBlock {
     fn is_section_header(&self) -> bool {
         let lowered = self.text.trim().to_ascii_lowercase();
         self.starts_line
-            && !allowance::is_directive(&self.text)
+            && !allowance::is_exception(&self.text)
             && !["todo", "fixme", "xxx", "hack", "safety", "see ", "http"]
                 .iter()
                 .any(|marker| lowered.contains(marker))
@@ -153,7 +153,7 @@ impl CommentBlock {
     /// code somebody could not bring themselves to delete.
     fn commented_out_code(&self, cx: &Context) -> Option<Diagnostic> {
         let text = self.text.trim();
-        if allowance::is_directive(text) || !has_code_signal(text) || !parses_as_rust(text) {
+        if allowance::is_exception(text) || !has_code_signal(text) || !parses_as_rust(text) {
             return None;
         }
         let mut diagnostic = cx.diagnostic(
@@ -250,7 +250,7 @@ fn parses_as_rust(text: &str) -> bool {
 
 fn starts_marker(text: &str) -> bool {
     let lowered = text.trim().to_ascii_lowercase();
-    allowance::is_directive(text)
+    allowance::is_exception(text)
         || ["todo", "fixme", "xxx", "hack"]
             .iter()
             .any(|marker| lowered.starts_with(marker))

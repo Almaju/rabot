@@ -31,6 +31,6 @@ two never has to hunt.
 ## Silence it
 
 ```rust
-// allow(sorted-struct-literal) initializers must run in this order: the token is minted before the session
+// rabot: allow(sorted-struct-literal) initializers must run in this order: the token is minted before the session
 Session { token: mint(&mut rng), id: next_id(&mut rng) }
 ```

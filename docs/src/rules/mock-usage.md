@@ -32,5 +32,5 @@ milliseconds, and earns its place: local dev, seeding, CI without Docker.
 ## Silence it
 
 ```rust
-// allow-file(mock-usage) legacy suite, replaced by MemGateway under TEST-88
+// rabot: allow-file(mock-usage) legacy suite, replaced by MemGateway under TEST-88
 ```

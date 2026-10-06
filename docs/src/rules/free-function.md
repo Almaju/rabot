@@ -32,7 +32,7 @@ and the compiler knows the method exists so nobody writes it twice.
 ## Silence it
 
 ```rust
-// allow(free-function) spans two types and belongs to neither: the transaction orchestrates both
+// rabot: allow(free-function) spans two types and belongs to neither: the transaction orchestrates both
 fn commit(store: &Store, orders: &[Order]) -> Result<(), CommitError> { .. }
 ```
 

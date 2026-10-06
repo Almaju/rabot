@@ -39,6 +39,6 @@ orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 ## Silence it
 
 ```rust
-// allow(orphan-module) test support only: builders and fixtures for the integration suite
+// rabot: allow(orphan-module) test support only: builders and fixtures for the integration suite
 mod helpers;
 ```

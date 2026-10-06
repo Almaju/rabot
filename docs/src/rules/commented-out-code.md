@@ -31,5 +31,5 @@ not need it.
 ## Silence it
 
 ```rust
-// allow(commented-out-code) the two lines below are the shape of the RFC-12 payload, kept for reference
+// rabot: allow(commented-out-code) the two lines below are the shape of the RFC-12 payload, kept for reference
 ```

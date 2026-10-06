@@ -37,6 +37,6 @@ section-comments = 3
 ## Silence it
 
 ```rust
-// allow(sectioned-function) the protocol handshake is documented step by step against RFC 6455 §4
+// rabot: allow(sectioned-function) the protocol handshake is documented step by step against RFC 6455 §4
 fn handshake(..) { .. }
 ```

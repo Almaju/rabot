@@ -24,6 +24,6 @@ impls line up.
 ## Silence it
 
 ```rust
-// allow(sorted-trait-items) documented as a state machine: methods appear in call order
+// rabot: allow(sorted-trait-items) documented as a state machine: methods appear in call order
 trait Handshake { .. }
 ```

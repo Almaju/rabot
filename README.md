@@ -170,25 +170,31 @@ Sorting still applies, and so do the comment rules, `mock-usage`,
 
 > You can break the rule. You must document the exception.
 
+Say so in the comment you would write anyway:
+
 ```rust
-// allow(sorted-fields) drop order matters: the guard must release first
+// Deliberately unsorted: the guard must release before the channel closes.
 struct Connection {
     guard: MutexGuard<'static, ()>,
     channel: Channel,
 }
+
+let port = env::var("PORT").unwrap(); // Intentional: the deploy script validates PORT.
 ```
 
-The comment silences the named rules for the item that follows it (or, as a
-trailing comment, for its own line). `// allow-file(rule) reason` covers the
+A comment that opens with *Deliberately*, *Intentionally*, *On purpose* or
+*By design* and gives a reason silences rabot for the item that follows it
+(or, as a trailing comment, for its own line). Nothing in it mentions rabot,
+so it fits a codebase where rabot is one contributor's tool rather than the
+project's.
+
+To name the rules instead, `// rabot: allow(sorted-fields) reason` silences
+just those for the item, and `// rabot: allow-file(rule) reason` for the
 whole file.
 
-The comment does not mention rabot. In an open-source codebase where only
-some contributors run it, it reads as a plain note on why the code is the way
-it is, not as configuration for a tool the project never adopted. A bare
-`// allow(..)` counts only when it names at least one rabot rule. Write
-`// rabot: allow(..)` if you prefer the tool to be explicit; both forms work.
-
-The reason is not optional. An allow comment without one is reported as
+The reason is not optional. "Intentionally empty" is not an exception: a
+marker needs a few words of why after it, or it silences nothing. A
+`rabot: allow` comment without a reason is reported as
 `undocumented-exception`, at error level. A rule name rabot does not know is
 `unknown-rule`.
 

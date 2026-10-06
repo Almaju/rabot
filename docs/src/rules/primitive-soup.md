@@ -38,7 +38,7 @@ primitive-soup = 2   # parameters of the same primitive type before it fires
 ## Silence it
 
 ```rust
-// allow(primitive-soup) stateless math with no subject: min, max are both just numbers
+// rabot: allow(primitive-soup) stateless math with no subject: min, max are both just numbers
 fn clamp(value: f64, min: f64, max: f64) -> f64 { .. }
 ```
 
