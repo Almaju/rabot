@@ -15,6 +15,7 @@ pub mod hook;
 pub mod level;
 pub mod module_graph;
 pub mod ordering;
+pub mod package;
 pub mod report;
 pub mod rule;
 pub mod rules;

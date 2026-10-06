@@ -41,6 +41,7 @@ rabot fmt              # sort fields, variants, impl items, derives, struct lite
 rabot fmt --check      # exit 1 if any file would change
 rabot fmt --diff       # show what fmt would change, as a unified diff
 rabot check --changed  # only files with uncommitted changes
+rabot -p core           # only the `core` package of a workspace (repeatable)
 rabot fmt --changed=main   # only files touched since main
 rabot hook             # install a pre-commit hook that does the two lines above
 rabot rules            # every rule, its default level, the article behind it
