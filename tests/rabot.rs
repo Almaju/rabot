@@ -330,6 +330,37 @@ fn fmt_turns_every_bad_sorting_example_into_the_good_one() {
 }
 
 #[test]
+fn a_deliberate_comment_silences_check_and_fmt() {
+    let dir = std::env::temp_dir().join(format!("rabot-deliberate-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let target = dir.join("lib.rs");
+    let source = "// Deliberately unsorted: the guard must release before the pool.\npub struct Connection {\n    guard: u8,\n    pool: u8,\n}\n\npub struct Plain {\n    b: u8,\n    a: u8,\n}\n";
+    std::fs::write(&target, source).expect("write");
+
+    let app = App::new(Config::default(), dir.clone());
+    let outcome = app
+        .check(&Scope::Paths(vec![target.clone()]))
+        .expect("check runs");
+    let lines: Vec<(Rule, usize)> = outcome
+        .diagnostics
+        .iter()
+        .map(|diagnostic| (diagnostic.rule, diagnostic.position.line))
+        .collect();
+    assert_eq!(
+        lines,
+        vec![(Rule::SortedFields, 7)],
+        "only the undocumented struct"
+    );
+
+    app.format(&Scope::Paths(vec![target.clone()]), FormatMode::Write)
+        .expect("fmt runs");
+    let formatted = std::fs::read_to_string(&target).expect("read");
+    assert!(formatted.contains("guard: u8,\n    pool: u8,"), "{formatted}");
+    assert!(formatted.contains("a: u8,\n    b: u8,"), "{formatted}");
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
 fn packages_narrow_a_workspace_run() {
     let dir = std::env::temp_dir().join(format!("rabot-workspace-{}", std::process::id()));
     let write = |relative: &str, text: &str| {

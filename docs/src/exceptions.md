@@ -2,22 +2,52 @@
 
 > You can break the rule. You must document the exception.
 
-Every rule can be silenced for one item with a comment that names the rule
-and says why:
+## Say it the way you would anyway
+
+When code breaks a principle on purpose, the honest thing is a comment
+saying so. rabot reads that comment:
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters: the guard must release first
+// Deliberately unsorted: the guard must release before the channel closes.
 struct Connection {
     guard: MutexGuard<'static, ()>,
     channel: Channel,
 }
 ```
 
-The comment covers the item that follows it: the whole struct, the whole
-function body, the whole impl. As a trailing comment it covers its own line:
+A comment that opens with **Deliberately**, **Intentionally**, **On
+purpose** or **By design** (any case, `Deliberate:` and `Intentional:` too)
+and then gives a reason is an exception. It covers the item that follows it:
+the whole struct, the whole function body, the whole impl. As a trailing
+comment it covers its own line:
 
 ```rust
-let port = env::var("PORT").unwrap(); // rabot: allow(panic-in-production) validated by the deploy script
+let port = env::var("PORT").unwrap(); // Intentional: the deploy script validates PORT.
+```
+
+The reason can wrap onto the `//` lines below. The comment silences every
+rabot rule on that item: it documents a decision about the code, not about a
+tool.
+
+Nothing in it mentions rabot. That matters in an open-source codebase where
+rabot is one contributor's linter rather than the project's: the comment
+reads as a plain note to the next maintainer, and nobody has to ask in
+review what `rabot` is.
+
+What does not count:
+
+- a marker with no reason: `// Intentionally empty` says the choice was made,
+  not why. At least three words have to follow the marker;
+- a marker in the middle of a sentence (`// This is intentional ...`) or on
+  the second line of a comment;
+- doc comments (`///`): they are for the item's users, not its maintainers.
+
+## Naming the rule
+
+When you want to be precise about what is silenced, name the rules:
+
+```rust
+// rabot: allow(sorted-fields) drop order matters: the guard must release first
 ```
 
 Several rules at once, and the whole file:
@@ -29,7 +59,7 @@ Several rules at once, and the whole file:
 
 ## The reason is not optional
 
-An allow comment without a reason is itself reported, at error level, as
+A `rabot: allow` comment without a reason is itself reported, at error level, as
 [`undocumented-exception`](rules/undocumented-exception.md). A rule name
 rabot does not know is [`unknown-rule`](rules/unknown-rule.md). The point of
 the comment is the sentence after the parenthesis: the next reader, or you in

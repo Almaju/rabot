@@ -197,7 +197,7 @@ impl<'a> Report<'a> {
         if warnings + errors > 0 {
             writeln!(
                 out,
-                "every exception must be written down: `// rabot: allow(rule-name) reason`"
+                "every exception must be written down: `// Deliberately ...: <reason>` above the item, or `// rabot: allow(rule-name) <reason>`"
             )?;
         }
         Ok(())

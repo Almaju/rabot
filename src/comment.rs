@@ -21,6 +21,13 @@ pub struct Comment {
 }
 
 impl Comment {
+    /// Whether this is a later line of a `//` comment that started on the
+    /// line above, given the comment just before it.
+    pub fn continues(&self, previous: Option<&Comment>) -> bool {
+        self.is_line()
+            && previous.is_some_and(|previous| previous.is_line() && previous.line + 1 == self.line)
+    }
+
     pub fn is_doc(&self) -> bool {
         self.kind == CommentKind::Doc
     }
