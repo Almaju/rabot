@@ -144,6 +144,12 @@ impl FileSet {
     pub fn len(&self) -> usize {
         self.paths.len()
     }
+
+    /// Keep only the paths `keep` accepts.
+    pub fn retain(mut self, keep: impl Fn(&Path) -> bool) -> Self {
+        self.paths.retain(|path| keep(path));
+        self
+    }
 }
 
 /// Whether `path` or any directory between `root` and it matches an exclude

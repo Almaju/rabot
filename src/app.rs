@@ -6,6 +6,7 @@ use crate::config::{Config, ConfigError};
 use crate::diagnostic::{Diagnostic, Level, Position};
 use crate::edit::{EditError, Edits};
 use crate::file_set::{FileSet, FileSetError, Scope};
+use crate::package::{PackageError, Packages};
 use crate::rule::Rule;
 use crate::rules::{Context, Findings, LocalTypes};
 use crate::source_file::SourceFile;
@@ -25,6 +26,8 @@ pub enum AppError {
     },
     #[error(transparent)]
     Files(#[from] FileSetError),
+    #[error(transparent)]
+    Package(#[from] PackageError),
     #[error("cannot read {path}: {source}")]
     Read {
         path: PathBuf,
@@ -80,9 +83,11 @@ impl Outcome {
     }
 }
 
-/// rabot itself: a configuration and the root it applies to.
+/// rabot itself: a configuration, the root it applies to, and the packages
+/// a run is narrowed to (every file under the root when there are none).
 pub struct App {
     pub config: Config,
+    pub packages: Vec<String>,
     pub root: PathBuf,
 }
 
@@ -92,7 +97,11 @@ impl App {
     }
 
     pub fn new(config: Config, root: PathBuf) -> Self {
-        Self { config, root }
+        Self {
+            config,
+            packages: Vec::new(),
+            root,
+        }
     }
 
     /// Lint: every rule, every diagnostic, nothing written.
@@ -184,6 +193,44 @@ impl App {
         Ok(outcome.finish())
     }
 
+    /// Narrow every run to the files of these Cargo packages, as `-p` does.
+    pub fn with_packages(mut self, packages: Vec<String>) -> Self {
+        self.packages = packages;
+        self
+    }
+
+    /// The files in `scope`, narrowed to the selected packages. A file
+    /// belongs to the package whose manifest is its nearest ancestor, so
+    /// selecting a workspace root package leaves its members out.
+    fn file_set(&self, scope: &Scope) -> Result<FileSet, AppError> {
+        let excludes = &self.config.files.exclude;
+        let packages = if self.packages.is_empty() {
+            None
+        } else {
+            let all = Packages::discover(&self.root)?;
+            let selected = all.select(&self.root, &self.packages)?;
+            Some((all, selected))
+        };
+        let set = match (scope, &packages) {
+            (Scope::Changed { since }, _) => FileSet::changed(&self.root, since.as_deref(), excludes)?,
+            (Scope::Paths(roots), Some((_, selected))) if roots.is_empty() => {
+                let dirs: Vec<PathBuf> = selected.iter().map(|package| package.dir.clone()).collect();
+                FileSet::discover(&dirs, excludes)?
+            }
+            (Scope::Paths(roots), _) if roots.is_empty() => {
+                FileSet::discover(std::slice::from_ref(&self.root), excludes)?
+            }
+            (Scope::Paths(roots), _) => FileSet::discover(roots, excludes)?,
+        };
+        Ok(match packages {
+            Some((all, selected)) => set.retain(|path| {
+                all.owner(path)
+                    .is_some_and(|owner| selected.iter().any(|package| package.name == owner.name))
+            }),
+            None => set,
+        })
+    }
+
     fn findings(&self, file: &SourceFile, local_types: &LocalTypes) -> Findings {
         let cx = Context {
             config: &self.config,
@@ -194,14 +241,7 @@ impl App {
     }
 
     fn parse_all(&self, scope: &Scope, outcome: &mut Outcome) -> Result<Vec<SourceFile>, AppError> {
-        let excludes = &self.config.files.exclude;
-        let set = match scope {
-            Scope::Changed { since } => FileSet::changed(&self.root, since.as_deref(), excludes)?,
-            Scope::Paths(roots) if roots.is_empty() => {
-                FileSet::discover(std::slice::from_ref(&self.root), excludes)?
-            }
-            Scope::Paths(roots) => FileSet::discover(roots, excludes)?,
-        };
+        let set = self.file_set(scope)?;
         outcome.files_seen = set.len();
         let mut files = Vec::with_capacity(set.len());
         for path in set.iter() {

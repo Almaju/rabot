@@ -27,6 +27,10 @@ use crate::rustfmt::Rustfmt;
 pub struct Cli {
     #[command(subcommand)]
     command: Option<Command>,
+    /// Only the files of this Cargo package (repeatable), like `cargo -p`.
+    /// Packages are found by their `Cargo.toml` under the root.
+    #[arg(short, long = "package", global = true, value_name = "NAME")]
+    package: Vec<String>,
     /// Directory holding rabot.toml (defaults to the current directory).
     #[arg(long, global = true, default_value = ".")]
     root: PathBuf,
@@ -139,7 +143,7 @@ impl Cli {
                 paths,
                 strict,
             } => {
-                let app = App::load(&self.root)?;
+                let app = App::load(&self.root)?.with_packages(self.package);
                 let outcome = app.check(&Scope::from_flags(changed, paths))?;
                 Report::new(format, &self.root).write(&outcome, &mut out)?;
                 Ok(exit_code(&outcome, strict))
@@ -152,7 +156,7 @@ impl Cli {
                 no_rustfmt,
                 paths,
             } => {
-                let app = App::load(&self.root)?;
+                let app = App::load(&self.root)?.with_packages(self.package);
                 let check = check || diff;
                 let mode = if check {
                     FormatMode::Check

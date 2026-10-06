@@ -13,6 +13,7 @@ pub mod edit;
 pub mod file_set;
 pub mod hook;
 pub mod ordering;
+pub mod package;
 pub mod report;
 pub mod rule;
 pub mod rules;
