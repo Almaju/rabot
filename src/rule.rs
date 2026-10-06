@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::diagnostic::Level;
+use crate::level::Level;
 
 const BLOG: &str = "https://almaju.github.io/blog/docs";
 
@@ -22,6 +22,7 @@ pub enum Rule {
     GlobalState,
     IgnoredTest,
     MockUsage,
+    ModuleCycle,
     OrphanModule,
     OversizedImpl,
     PanicInProduction,
@@ -62,6 +63,7 @@ impl Rule {
             Rule::GlobalState,
             Rule::IgnoredTest,
             Rule::MockUsage,
+            Rule::ModuleCycle,
             Rule::OrphanModule,
             Rule::OversizedImpl,
             Rule::PanicInProduction,
@@ -127,6 +129,9 @@ impl Rule {
             Rule::GlobalState => "Mutable global state hides dependencies from the type signature.",
             Rule::IgnoredTest => "An ignored test without a reason is a skipped test nobody will un-skip.",
             Rule::MockUsage => "Mocks test your assumptions. Build a real in-memory implementation.",
+            Rule::ModuleCycle => {
+                "Two modules that depend on each other are one module with a boundary nobody can find."
+            }
             Rule::OrphanModule => "A `utils`-style module is where orphaned logic goes to die.",
             Rule::OversizedImpl => {
                 "An impl with too many methods is several types that have not been separated yet."
@@ -227,6 +232,7 @@ impl Rule {
             Rule::GlobalState => "global-state",
             Rule::IgnoredTest => "ignored-test",
             Rule::MockUsage => "mock-usage",
+            Rule::ModuleCycle => "module-cycle",
             Rule::OrphanModule => "orphan-module",
             Rule::OversizedImpl => "oversized-impl",
             Rule::PanicInProduction => "panic-in-production",
@@ -260,7 +266,9 @@ impl Rule {
                 "fundamentals/style/comments"
             }
             Rule::FreeFunction | Rule::VagueTypeName => "fundamentals/modeling/method-ownership",
-            Rule::AmbientConfig | Rule::GlobalState => "fundamentals/architecture/dependencies",
+            Rule::AmbientConfig | Rule::GlobalState | Rule::ModuleCycle => {
+                "fundamentals/architecture/dependencies"
+            }
             Rule::AmbientRandomness
             | Rule::AmbientTime
             | Rule::IgnoredTest
@@ -317,6 +325,7 @@ impl Rule {
             Rule::GlobalState => page!("global-state"),
             Rule::IgnoredTest => page!("ignored-test"),
             Rule::MockUsage => page!("mock-usage"),
+            Rule::ModuleCycle => page!("module-cycle"),
             Rule::OrphanModule => page!("orphan-module"),
             Rule::OversizedImpl => page!("oversized-impl"),
             Rule::PanicInProduction => page!("panic-in-production"),

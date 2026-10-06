@@ -11,4 +11,9 @@ out about it when two tests mutate it in parallel, or when you try to move
 the code and discover what it secretly needed. The compiler cannot help
 because the dependency is invisible.
 
-One rule, for the one thing a linter can see: mutable global state.
+A dependency that runs both ways is hidden in a different sense: two
+modules that use each other have no boundary between them, only the
+appearance of one. You cannot reuse, test or rebind either half alone.
+
+Rules: [`global-state`](global-state.md), [`ambient-config`](ambient-config.md),
+[`module-cycle`](module-cycle.md).

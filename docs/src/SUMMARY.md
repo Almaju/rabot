@@ -42,6 +42,7 @@
 - [Dependencies](rules/dependencies.md)
   - [global-state](rules/global-state.md)
   - [ambient-config](rules/ambient-config.md)
+  - [module-cycle](rules/module-cycle.md)
 - [Tests](rules/testing.md)
   - [mock-usage](rules/mock-usage.md)
   - [ignored-test](rules/ignored-test.md)
