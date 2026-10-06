@@ -34,6 +34,9 @@ way, the failure leaves a trace.
 ## Silence it
 
 ```rust
-// rabot: allow(swallowed-error) best-effort cleanup of a temp file; the OS reclaims it anyway
+// Intentionally ignored: best-effort cleanup of a temp file, the OS reclaims it anyway.
 std::fs::remove_file(&tmp).ok();
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(swallowed-error) <reason>`.

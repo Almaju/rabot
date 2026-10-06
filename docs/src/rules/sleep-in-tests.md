@@ -32,5 +32,8 @@ exact.
 ## Silence it
 
 ```rust
-// rabot: allow(sleep-in-tests) exercises the real timeout path against the in-process server
+// Deliberately sleeps: this exercises the real timeout path against the in-process server.
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sleep-in-tests) <reason>`.

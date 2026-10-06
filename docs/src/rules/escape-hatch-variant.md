@@ -42,5 +42,8 @@ escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other", "Unex
 ## Silence it
 
 ```rust
-// rabot: allow(escape-hatch-variant) FFI boundary: the C library reports free-form strings we cannot classify
+// By design: the C library reports free-form strings we cannot classify.
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(escape-hatch-variant) <reason>`.

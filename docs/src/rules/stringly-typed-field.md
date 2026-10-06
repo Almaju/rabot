@@ -40,6 +40,9 @@ enum-fields = ["category", "kind", "level", "mode", "phase", "role", "stage", "s
 ## Silence it
 
 ```rust
-// rabot: allow(stringly-typed-field) free-form user label, not a closed set
+// Intentionally a String: a free-form user label, not a closed set.
 struct Tag { kind: String }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(stringly-typed-field) <reason>`.

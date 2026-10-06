@@ -31,6 +31,15 @@ milliseconds, and earns its place: local dev, seeding, CI without Docker.
 
 ## Silence it
 
+Above the mock, say why it is there:
+
+```rust
+// Deliberately mocked: legacy suite, replaced by MemGateway under TEST-88.
+mock! { Gateway {} }
+```
+
+For a whole file of them, name the rule once at the top:
+
 ```rust
 // rabot: allow-file(mock-usage) legacy suite, replaced by MemGateway under TEST-88
 ```

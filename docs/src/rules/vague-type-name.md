@@ -41,8 +41,11 @@ vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
 ## Silence it
 
 ```rust
-// rabot: allow(vague-type-name) implements the DDD Repository contract: the domain never sees SQL
+// Deliberately named Repository: it implements the DDD contract, the domain never sees SQL.
 struct OrderRepository { .. }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(vague-type-name) <reason>`.
 
 If you are genuinely implementing the pattern, own it. Write down why.

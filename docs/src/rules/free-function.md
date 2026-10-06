@@ -32,9 +32,12 @@ and the compiler knows the method exists so nobody writes it twice.
 ## Silence it
 
 ```rust
-// rabot: allow(free-function) spans two types and belongs to neither: the transaction orchestrates both
+// Deliberately a free function: it spans two types and belongs to neither, the transaction orchestrates both.
 fn commit(store: &Store, orders: &[Order]) -> Result<(), CommitError> { .. }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(free-function) <reason>`.
 
 The article's exceptions: stateless math (`clamp`), top-level orchestration
 (`App`), and operations that genuinely belong to a third thing.

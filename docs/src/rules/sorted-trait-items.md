@@ -24,6 +24,9 @@ impls line up.
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-trait-items) documented as a state machine: methods appear in call order
+// Deliberately unsorted: a state machine, methods appear in call order.
 trait Handshake { .. }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-trait-items) <reason>`.

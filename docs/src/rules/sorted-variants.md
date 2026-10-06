@@ -33,6 +33,9 @@ An enum whose order carries meaning usually says so already: derive
 it down:
 
 ```rust
-// rabot: allow(sorted-variants) matches the on-wire protocol numbering
+// Deliberately unsorted: matches the on-wire protocol numbering.
 enum Opcode { Connect, Publish, Subscribe, Disconnect }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-variants) <reason>`.

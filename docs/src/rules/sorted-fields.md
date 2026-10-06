@@ -44,12 +44,15 @@ struct User {
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-fields) drop order matters: the guard must release before the pool
+// Deliberately unsorted: drop order matters, the guard must release before the pool.
 struct Connection {
     guard: MutexGuard<'static, ()>,
     pool: Pool,
 }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-fields) <reason>`.
 
 Field order also decides `Debug` output and serde's field order. Those are
 rarely a reason; when they are, write them down.

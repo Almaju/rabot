@@ -35,5 +35,8 @@ historical scenario.
 ## Silence it
 
 ```rust
-let started = Instant::now(); // rabot: allow(ambient-time) request timing for the log line; nothing branches on it
+let started = Instant::now(); // Intentional: request timing for the log line, nothing branches on it.
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(ambient-time) <reason>`.

@@ -33,12 +33,15 @@ needs no explaining. Implementation details last.
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-impl-items) distance_to and is_near are inseparable: is_near wraps distance_to
+// Deliberately unsorted: is_near wraps distance_to, so they read together.
 impl GpsCoordinates {
     fn distance_to(&self, other: &Self) -> Distance { .. }
     fn is_near(&self, other: &Self, radius: Distance) -> bool { .. }
 }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-impl-items) <reason>`.
 
 The article's own example: one sentence says why they are together. If it
 takes more than one sentence, there is a separate type trying to escape.

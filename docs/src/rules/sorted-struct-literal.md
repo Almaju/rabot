@@ -31,6 +31,9 @@ two never has to hunt.
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-struct-literal) initializers must run in this order: the token is minted before the session
+// Deliberately unsorted: the token must be minted before the session id.
 Session { token: mint(&mut rng), id: next_id(&mut rng) }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-struct-literal) <reason>`.
