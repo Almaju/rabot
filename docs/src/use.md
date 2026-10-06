@@ -12,6 +12,7 @@ rabot fmt --diff           # show what fmt would change, as a unified diff
 rabot fmt --no-rustfmt     # reorder only, leave indentation alone
 
 rabot check --changed      # only files with uncommitted changes
+rabot -p core              # only the `core` package of a workspace (repeatable)
 rabot fmt --changed=main   # only files touched since main
 
 rabot hook                 # install a pre-commit hook
@@ -54,6 +55,20 @@ touches it.
 `rabot hook` installs exactly that as a git pre-commit hook: the commit is
 refused (with the diff) when a staged file would be reordered, and the
 domain rules run on the staged files.
+
+## One package of a workspace
+
+```sh
+rabot -p core                  # check only the `core` crate
+rabot fmt -p core -p cli       # format two of them
+rabot check -p core --changed  # combine with --changed or explicit paths
+```
+
+`-p` (`--package`) works like cargo's: rabot finds every `Cargo.toml` under
+the root, and a run keeps only the files whose nearest manifest names one of
+the selected packages. A workspace root that is also a package does not own
+its members' files. An unknown name is an error that lists the packages
+rabot found. `rabot.toml` is still read from the root.
 
 ## In CI
 
