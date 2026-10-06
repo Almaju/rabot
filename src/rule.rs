@@ -209,6 +209,15 @@ impl Rule {
         )
     }
 
+    /// Rules about rabot's own input (allow comments, parse errors) rather
+    /// than about the code. No exception silences them.
+    pub fn is_meta(self) -> bool {
+        matches!(
+            self,
+            Rule::SyntaxError | Rule::UndocumentedException | Rule::UnknownRule
+        )
+    }
+
     pub fn name(self) -> &'static str {
         match self {
             Rule::AmbientConfig => "ambient-config",

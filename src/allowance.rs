@@ -1,11 +1,25 @@
 use std::ops::RangeInclusive;
 
-use crate::comment::Comments;
+use crate::comment::{Comment, Comments};
 use crate::rule::Rule;
 
 const PREFIX: &str = "rabot:";
 
-/// A documented exception: `// rabot: allow(rule, other-rule) because ...`.
+/// Words a comment can open with to say that what follows is deliberate.
+/// Matched case-insensitively, on a word boundary, at the very start.
+const MARKERS: [&str; 4] = ["by design", "deliberate", "intentional", "on purpose"];
+
+/// Words of reason a marked comment needs before it counts: "Intentionally
+/// empty" says the choice was made, not why.
+const MIN_REASON_WORDS: usize = 3;
+
+/// A documented exception, written one of two ways:
+///
+/// - as a plain comment that says the code is deliberate and why:
+///   `// Deliberately unsorted: the guard must release before the pool.`
+///   It covers every rule on the item it precedes, and reads as an ordinary
+///   note to a codebase that has never heard of rabot;
+/// - as a directive naming rules: `// rabot: allow(rule, other-rule) because ...`.
 ///
 /// The reason is mandatory. An exception that lives only in someone's head is
 /// not an exception; it is chaos with better intentions.
@@ -44,11 +58,15 @@ pub struct Allowances {
 impl Allowances {
     pub fn parse(comments: &Comments) -> Self {
         let mut allowances = Allowances::default();
-        for comment in comments.iter().filter(|comment| !comment.is_doc()) {
-            let Some(directive) = comment.text.trim().strip_prefix(PREFIX) else {
-                continue;
-            };
-            allowances.parse_directive(directive.trim(), comment.line);
+        let comments: Vec<&Comment> = comments.iter().filter(|comment| !comment.is_doc()).collect();
+        for (index, comment) in comments.iter().enumerate() {
+            if let Some(directive) = comment.text.trim().strip_prefix(PREFIX) {
+                allowances.parse_directive(directive.trim(), comment.line);
+            } else if let Some(reason) = marked_reason(&comment.text)
+                && !comment.continues(comments[..index].last().copied())
+            {
+                allowances.parse_prose(reason, comment.line, &comments[index + 1..]);
+            }
         }
         allowances
     }
@@ -151,6 +169,58 @@ impl Allowances {
             scope: line..=line,
         });
     }
+
+    /// A comment opening with a marker. Line comments directly below it
+    /// continue the sentence, so a reason can wrap.
+    fn parse_prose(&mut self, reason: &str, line: usize, following: &[&Comment]) {
+        let mut reason = reason.trim().trim_start_matches([':', ',', '-', ' ']).to_string();
+        for (offset, next) in following.iter().enumerate() {
+            if !next.is_line() || next.line != line + offset + 1 {
+                break;
+            }
+            reason.push(' ');
+            reason.push_str(next.text.trim());
+        }
+        if reason.split_whitespace().count() < MIN_REASON_WORDS {
+            return;
+        }
+        self.items.push(Allowance {
+            file_wide: false,
+            line,
+            reason,
+            rules: Rule::all()
+                .iter()
+                .copied()
+                .filter(|rule| !rule.is_meta())
+                .collect(),
+            scope: line..=line,
+        });
+    }
+}
+
+/// Whether a comment's text is an exception in either form. The comment
+/// rules skip these: an exception is neither code nor a section header.
+pub fn is_exception(text: &str) -> bool {
+    text.contains(PREFIX) || marked_reason(text).is_some()
+}
+
+/// The text after a leading marker ("Intentionally", "By design", ...),
+/// or `None` when the comment does not open with one.
+fn marked_reason(text: &str) -> Option<&str> {
+    let text = text.trim();
+    let lowered = text.to_ascii_lowercase();
+    MARKERS.iter().find_map(|marker| {
+        let rest = lowered.strip_prefix(marker)?;
+        // The marker's own suffix (`-ly`, `-ally`) is part of the word.
+        let word_end = rest
+            .find(|c: char| !c.is_ascii_alphabetic())
+            .unwrap_or(rest.len());
+        let suffix = &rest[..word_end];
+        if !matches!(suffix, "" | "ly") {
+            return None;
+        }
+        Some(&text[marker.len() + word_end..])
+    })
 }
 
 /// The first line after `line` that holds code rather than a comment,
@@ -223,6 +293,54 @@ mod tests {
     fn file_wide_allowance() {
         let allowances = parse("// rabot: allow-file(mock-usage) legacy suite\n\nfn a() {}");
         assert!(allowances.covers(Rule::MockUsage, 300));
+    }
+
+    #[test]
+    fn a_deliberate_comment_covers_every_rule_on_its_item() {
+        for source in [
+            "// Deliberately unsorted: the guard must release before the pool.\nstruct A;",
+            "// Intentionally unsorted, to match the C header.\nstruct A;",
+            "// intentional: the C header defines this order\nstruct A;",
+            "// On purpose: this mirrors the wire format.\nstruct A;",
+            "// By design, callers own the retry loop.\nstruct A;",
+        ] {
+            let allowances = parse(source);
+            assert!(allowances.covers(Rule::SortedFields, 2), "{source}");
+            assert!(allowances.covers(Rule::PanicInProduction, 2), "{source}");
+            assert!(!allowances.covers(Rule::SortedFields, 3), "{source}");
+            assert_eq!(allowances.problems(), &[], "{source}");
+        }
+    }
+
+    #[test]
+    fn a_deliberate_comment_can_wrap() {
+        let allowances = parse("// Deliberately unsorted:\n// the guard must release first.\nstruct A;");
+        assert!(allowances.covers(Rule::SortedFields, 3));
+        assert_eq!(
+            allowances.iter().next().map(|a| a.reason.as_str()),
+            Some("unsorted: the guard must release first.")
+        );
+    }
+
+    #[test]
+    fn a_marker_without_a_reason_or_inside_a_word_is_not_an_exception() {
+        for source in [
+            "// Intentionally empty\nstruct A;",
+            "// Deliberately.\nstruct A;",
+            "// Intentionality is overrated, says the docs.\nstruct A;",
+            "// This is intentional: the guard must release first.\nstruct A;",
+            "// The buffer size is\n// intentionally controlled by the caller.\nstruct A;",
+        ] {
+            let allowances = parse(source);
+            assert_eq!(allowances.iter().count(), 0, "{source}");
+            assert_eq!(allowances.problems(), &[], "{source}");
+        }
+    }
+
+    #[test]
+    fn a_trailing_deliberate_comment_covers_its_own_line() {
+        let allowances = parse("let x = y.unwrap(); // Intentional: checked two lines above");
+        assert!(allowances.covers(Rule::PanicInProduction, 1));
     }
 
     #[test]
