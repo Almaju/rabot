@@ -40,6 +40,9 @@ With that setting the example becomes
 ## Silence it
 
 ```rust
-// rabot: allow(sorted-derives) the proc macro must see Builder before Default
+// Deliberately unsorted: the proc macro must see Builder before Default.
 #[derive(Builder, Default)]
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(sorted-derives) <reason>`.

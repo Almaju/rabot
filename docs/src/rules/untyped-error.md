@@ -35,6 +35,9 @@ handling, they are one variant.
 ## Silence it
 
 ```rust
-// rabot: allow(untyped-error) CLI entry point: every failure ends in the same exit code and message
+// Deliberately untyped: the CLI entry point, every failure ends in the same exit code and message.
 fn run(args: Args) -> Result<(), Box<dyn Error>> { .. }
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(untyped-error) <reason>`.

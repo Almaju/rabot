@@ -30,6 +30,9 @@ construction, and no function that receives one has to check again.
 ## Silence it
 
 ```rust
-// rabot: allow(bypassable-constructor) any f64 is a valid Meters; `parse` only exists for the text form
+// Intentionally public: any f64 is a valid Meters, `parse` only exists for the text form.
 pub struct Meters(pub f64);
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(bypassable-constructor) <reason>`.

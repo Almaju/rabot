@@ -34,8 +34,11 @@ Startup is the exception: the program cannot run without its config, and
 ## Silence it
 
 ```rust
-let first = items.first().unwrap(); // rabot: allow(panic-in-production) `items` was checked non-empty two lines up
+let first = items.first().unwrap(); // Intentional: `items` was checked non-empty two lines up.
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(panic-in-production) <reason>`.
 
 An invariant that proves programmer error is the article's other exception.
 Say which invariant.

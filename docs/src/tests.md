@@ -27,6 +27,10 @@ Sorting, the comment rules, `mock-usage`, `ignored-test` and
 `sleep-in-tests`. A test file is still code, and the last three are about
 tests.
 
+`module-cycle` is neither: it ignores test code entirely. A `#[cfg(test)]`
+module that reaches back into its parent with `use super::*` is how tests
+are written, not a dependency between layers.
+
 ## Tuning it
 
 ```toml

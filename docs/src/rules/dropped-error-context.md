@@ -32,6 +32,9 @@ caller matches on your variant; the log walks `source()` down to the OS.
 ## Silence it
 
 ```rust
-// rabot: allow(dropped-error-context) the only possible failure is Utf8; the position is what matters
+// Deliberate: the only possible failure is Utf8, and the position is what matters.
 let name = String::from_utf8(bytes).map_err(|_| NameError::NotUtf8 { offset })?;
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(dropped-error-context) <reason>`.

@@ -48,10 +48,13 @@ point one way, and each layer can be understood, and replaced, from below.
 
 ## Silence it
 
-An allow comment on the dependency you accept removes it from the graph, which
+An exception on the dependency you accept removes it from the graph, which
 breaks the cycle for both ends:
 
 ```rust
-// rabot: allow(module-cycle) the callback registry is shared with the FFI layer until ADS-231 moves it
+// Deliberate, until ADS-231 moves it: the callback registry is shared with the FFI layer.
 use crate::ffi::CallbackRegistry;
 ```
+
+The comment says the code is deliberate and why, without naming rabot.
+To name the rule instead: `// rabot: allow(module-cycle) <reason>`.
