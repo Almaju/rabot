@@ -33,5 +33,5 @@ the first request that reaches that code path.
 ## Silence it
 
 ```rust
-// Intentional: RUST_LOG is the logger's own contract, read by the logging crate.
+// Intentionally read from the environment: RUST_LOG is the logging crate's own contract.
 ```

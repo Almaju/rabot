@@ -52,6 +52,6 @@ An exception on the dependency you accept removes it from the graph, which
 breaks the cycle for both ends:
 
 ```rust
-// Deliberate, until ADS-231 moves it: the callback registry is shared with the FFI layer.
+// Deliberately circular until ADS-231 moves it: the callback registry is shared with the FFI layer.
 use crate::ffi::CallbackRegistry;
 ```

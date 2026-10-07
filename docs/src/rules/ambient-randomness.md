@@ -25,6 +25,6 @@ The bug report says "the same person won twice". You cannot reproduce it.
 ## Silence it
 
 ```rust
-// Intentional: jitter on a retry delay, the exact value never matters.
+// Intentionally random: jitter on a retry delay, the exact value never matters.
 let jitter = rand::random::<u64>() % 50;
 ```

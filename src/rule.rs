@@ -218,6 +218,16 @@ impl Rule {
         )
     }
 
+    /// Whether `word`, lowercase, names this rule in a deliberate comment,
+    /// as `unsorted` does in `// Deliberately unsorted: ..`. A plural `s` is
+    /// ignored: `panics` names what `panic` names.
+    pub fn is_named_by(self, word: &str) -> bool {
+        let singular = word.strip_suffix('s');
+        self.words()
+            .iter()
+            .any(|known| *known == word || singular == Some(*known))
+    }
+
     pub fn name(self) -> &'static str {
         match self {
             Rule::AmbientConfig => "ambient-config",
@@ -299,6 +309,56 @@ impl Rule {
             | Rule::UnknownRule => "fundamentals/style/sorting",
         };
         format!("{BLOG}/{page}")
+    }
+
+    /// Plain words that name this rule after a marker, between it and the
+    /// colon: `// Intentional unwrap: ..` covers `panic-in-production` and
+    /// nothing else. Listed in `docs/src/deliberate.md`, which a test keeps
+    /// in step with this list.
+    pub fn words(self) -> &'static [&'static str] {
+        match self {
+            Rule::AmbientConfig => &["config", "configuration", "env", "environment"],
+            Rule::AmbientRandomness => &["jitter", "random", "randomness", "rng"],
+            Rule::AmbientTime => &["clock", "time", "timing"],
+            Rule::BooleanValidation => &["bool", "boolean"],
+            Rule::BypassableConstructor => &["exposed", "pub", "public"],
+            Rule::CommentedOutCode => &["commented", "commented-out", "kept"],
+            Rule::DroppedErrorContext => &["context"],
+            Rule::EscapeHatchVariant => &["catch-all", "escape", "free-form", "hatch"],
+            Rule::FreeFunction => &["free"],
+            Rule::GlobalState => &["global", "singleton", "static"],
+            Rule::IgnoredTest => &["ignored", "skipped"],
+            Rule::MockUsage => &["mock", "mocked"],
+            Rule::ModuleCycle => &["circular", "cycle", "cyclic"],
+            Rule::OrphanModule => &["helper", "module", "util"],
+            Rule::OversizedImpl => &["big", "large", "long", "oversized"],
+            Rule::PanicInProduction => &["expect", "panic", "panicking", "unwrap", "unwrapped"],
+            Rule::PrimitiveField | Rule::PrimitiveSoup => &["plain", "primitive", "raw"],
+            Rule::SectionedFunction => &["long", "section", "sectioned", "step"],
+            Rule::SleepInTests => &["sleep", "sleeping"],
+            Rule::SortedDerives
+            | Rule::SortedFields
+            | Rule::SortedImplItems
+            | Rule::SortedStructLiteral
+            | Rule::SortedStructPattern
+            | Rule::SortedTraitItems
+            | Rule::SortedVariants => &[
+                "order",
+                "ordered",
+                "ordering",
+                "sort",
+                "sorted",
+                "sorting",
+                "unordered",
+                "unsorted",
+            ],
+            Rule::StringlyTypedField => &["str", "string", "stringly"],
+            Rule::SwallowedError => &["best-effort", "discarded", "ignored", "swallowed"],
+            Rule::TooManyParameters => &["arg", "argument", "long", "param", "parameter"],
+            Rule::UntypedError => &["anyhow", "boxed", "dyn", "untyped"],
+            Rule::VagueTypeName => &["name", "named"],
+            Rule::SyntaxError | Rule::UndocumentedException | Rule::UnknownRule | Rule::VagueTodo => &[],
+        }
     }
 
     fn documentation_page(self) -> DocumentationPage {
@@ -430,6 +490,33 @@ mod tests {
                 "**Level**: warn"
             };
             assert_eq!(stated, expected.replace("warning", "warn"), "{rule}");
+        }
+    }
+
+    #[test]
+    fn every_word_is_documented() {
+        let page = include_str!("../docs/src/deliberate.md");
+        for rule in Rule::all() {
+            let link = format!("[{rule}](rules/{rule}.md)");
+            let row = page
+                .lines()
+                .find(|line| line.starts_with("| ") && line.contains(&link));
+            let Some(row) = row else {
+                assert!(rule.words().is_empty(), "{rule}: no row in deliberate.md");
+                continue;
+            };
+            for word in rule.words() {
+                assert!(
+                    row.contains(&format!("*{word}*")),
+                    "{rule}: `{word}` is missing from its row"
+                );
+            }
+            let documented = row.matches('*').count() / 2;
+            assert_eq!(
+                documented,
+                rule.words().len(),
+                "{rule}: the row lists words the code does not know"
+            );
         }
     }
 

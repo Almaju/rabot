@@ -17,7 +17,9 @@ const MIN_REASON_WORDS: usize = 3;
 ///
 /// - as a plain comment that says the code is deliberate and why:
 ///   `// Deliberately unsorted: the guard must release before the pool.`
-///   It covers every rule on the item it precedes, and reads as an ordinary
+///   The words before the first colon or comma say what is deliberate; when
+///   they name rules (`unsorted` names the sorting rules), it covers those,
+///   otherwise every rule on the item it precedes. It reads as an ordinary
 ///   note to a codebase that has never heard of rabot;
 /// - as a directive naming rules: `// rabot: allow(rule, other-rule) because ...`.
 ///
@@ -171,28 +173,37 @@ impl Allowances {
     }
 
     /// A comment opening with a marker. Line comments directly below it
-    /// continue the sentence, so a reason can wrap.
-    fn parse_prose(&mut self, reason: &str, line: usize, following: &[&Comment]) {
-        let mut reason = reason.trim().trim_start_matches([':', ',', '-', ' ']).to_string();
+    /// continue the sentence, so a reason can wrap. When the words that say
+    /// what is deliberate name rules ("Deliberately unsorted"), only those
+    /// are covered; otherwise ("Intentional: ...") every rule is.
+    fn parse_prose(&mut self, text: &str, line: usize, following: &[&Comment]) {
+        let mut text = text.trim().to_string();
         for (offset, next) in following.iter().enumerate() {
             if !next.is_line() || next.line != line + offset + 1 {
                 break;
             }
-            reason.push(' ');
-            reason.push_str(next.text.trim());
+            text.push(' ');
+            text.push_str(next.text.trim());
         }
+        let reason = text.trim_start_matches([':', ',', '-', ' ']);
         if reason.split_whitespace().count() < MIN_REASON_WORDS {
             return;
         }
+        let topic = topic(&text);
+        let coverable = Rule::all().iter().copied().filter(|rule| !rule.is_meta());
+        let named: Vec<Rule> = coverable
+            .clone()
+            .filter(|rule| topic.iter().any(|word| rule.is_named_by(word)))
+            .collect();
         self.items.push(Allowance {
             file_wide: false,
             line,
-            reason,
-            rules: Rule::all()
-                .iter()
-                .copied()
-                .filter(|rule| !rule.is_meta())
-                .collect(),
+            reason: reason.to_string(),
+            rules: if named.is_empty() {
+                coverable.collect()
+            } else {
+                named
+            },
             scope: line..=line,
         });
     }
@@ -221,6 +232,24 @@ fn marked_reason(text: &str) -> Option<&str> {
         }
         Some(&text[marker.len() + word_end..])
     })
+}
+
+/// The words that say what is deliberate: those after the marker, up to the
+/// first colon, comma or full stop. `unsorted` in "Deliberately unsorted:
+/// drop order matters", nothing in "Intentional: checked above". Lowercase,
+/// with surrounding punctuation and backticks removed.
+fn topic(text: &str) -> Vec<String> {
+    let mut words = Vec::new();
+    for token in text.split_whitespace() {
+        if matches!(token, "-" | "--" | "\u{2013}" | "\u{2014}") || token.starts_with('(') {
+            break;
+        }
+        words.push(token.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase());
+        if token.ends_with([':', ',', ';', '.', '!', '?']) {
+            break;
+        }
+    }
+    words
 }
 
 /// The first line after `line` that holds code rather than a comment,
@@ -298,17 +327,109 @@ mod tests {
     #[test]
     fn a_deliberate_comment_covers_every_rule_on_its_item() {
         for source in [
-            "// Deliberately unsorted: the guard must release before the pool.\nstruct A;",
-            "// Intentionally unsorted, to match the C header.\nstruct A;",
             "// intentional: the C header defines this order\nstruct A;",
             "// On purpose: this mirrors the wire format.\nstruct A;",
             "// By design, callers own the retry loop.\nstruct A;",
+            "// Intentionally slow: the backoff is the whole point.\nstruct A;",
         ] {
             let allowances = parse(source);
             assert!(allowances.covers(Rule::SortedFields, 2), "{source}");
             assert!(allowances.covers(Rule::PanicInProduction, 2), "{source}");
             assert!(!allowances.covers(Rule::SortedFields, 3), "{source}");
+            assert!(!allowances.covers(Rule::UnknownRule, 2), "{source}");
             assert_eq!(allowances.problems(), &[], "{source}");
+        }
+    }
+
+    #[test]
+    fn saying_what_is_deliberate_covers_only_the_rules_it_names() {
+        for source in [
+            "// Deliberately unsorted: the guard must release before the pool.\nstruct A;",
+            "// Intentionally unsorted, to match the C header.\nstruct A;",
+            "// Intentional sorting: the C header defines this order.\nstruct A;",
+            "// By design the order matches the wire format.\nstruct A;",
+            "// Deliberately left unsorted\n// so the guard releases first.\nstruct A;",
+        ] {
+            let allowances = parse(source);
+            let item = source.lines().count();
+            assert!(allowances.covers(Rule::SortedFields, item), "{source}");
+            assert!(allowances.covers(Rule::SortedDerives, item), "{source}");
+            assert!(!allowances.covers(Rule::PanicInProduction, item), "{source}");
+        }
+    }
+
+    #[test]
+    fn the_words_after_the_colon_are_the_reason_not_the_subject() {
+        let allowances = parse("// Intentional: the unwrap is checked two lines above.\nstruct A;");
+        assert!(allowances.covers(Rule::PanicInProduction, 2));
+        assert!(allowances.covers(Rule::SortedFields, 2));
+    }
+
+    #[test]
+    fn words_are_matched_loosely() {
+        for (source, rule) in [
+            (
+                "let x = y.unwrap(); // Intentional unwraps: checked above.",
+                Rule::PanicInProduction,
+            ),
+            (
+                "// Intentionally a `String`: a free-form user label.\nstruct A;",
+                Rule::StringlyTypedField,
+            ),
+            (
+                "// Deliberately PUBLIC: any f64 is a valid Meters.\nstruct A;",
+                Rule::BypassableConstructor,
+            ),
+            (
+                "// Deliberately a catch-all: the C library is free-form.\nenum E;",
+                Rule::EscapeHatchVariant,
+            ),
+        ] {
+            let allowances = parse(source);
+            let item = source.lines().count();
+            assert!(allowances.covers(rule, item), "{source}");
+            assert!(!allowances.covers(Rule::SortedFields, item), "{source}");
+        }
+    }
+
+    #[test]
+    fn several_words_cover_several_rules() {
+        let allowances =
+            parse("// Deliberately unsorted and unwrapped: generated from the C header.\nstruct A;");
+        assert!(allowances.covers(Rule::SortedFields, 2));
+        assert!(allowances.covers(Rule::PanicInProduction, 2));
+        assert!(!allowances.covers(Rule::GlobalState, 2));
+    }
+
+    /// Every rule page shows how to silence it. The comment it shows has to
+    /// do that by naming the rule, not by covering everything.
+    #[test]
+    fn every_rule_page_example_names_its_rule() {
+        for rule in Rule::all() {
+            let page = rule.documentation();
+            let Some((_, silence)) = page.split_once("## Silence it") else {
+                continue;
+            };
+            let Some((example, reason)) = silence.lines().find_map(|line| {
+                let (_, text) = line.split_once("//")?;
+                Some((line, marked_reason(text)?))
+            }) else {
+                continue;
+            };
+            assert!(
+                topic(reason).iter().any(|word| rule.is_named_by(word)),
+                "{rule}: `{example}` does not name it"
+            );
+            let item = if example.trim_start().starts_with("//") {
+                2
+            } else {
+                1
+            };
+            let allowances = parse(&format!("{example}\nstruct A;"));
+            assert!(
+                allowances.covers(*rule, item),
+                "{rule}: `{example}` does not silence it"
+            );
         }
     }
 

@@ -7,6 +7,7 @@
 - [Install](install.md)
 - [Use](use.md)
 - [Exceptions](exceptions.md)
+  - [Say what is deliberate](deliberate.md)
 - [Configuration](configuration.md)
 - [Test code](tests.md)
 

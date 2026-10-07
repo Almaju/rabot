@@ -42,5 +42,5 @@ escape-hatch-variants = ["Custom", "Generic", "Internal", "Misc", "Other", "Unex
 ## Silence it
 
 ```rust
-// By design: the C library reports free-form strings we cannot classify.
+// By design a catch-all: the C library reports free-form strings we cannot classify.
 ```

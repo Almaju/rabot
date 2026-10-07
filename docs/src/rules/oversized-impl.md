@@ -34,6 +34,6 @@ oversized-impl = 20
 ## Silence it
 
 ```rust
-// By design: a builder, one method per option is the whole point.
+// Deliberately large: a builder, one method per option is the whole point.
 impl CommandBuilder { .. }
 ```

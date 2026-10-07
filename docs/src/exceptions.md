@@ -25,9 +25,9 @@ comment it covers its own line:
 let port = env::var("PORT").unwrap(); // Intentional: the deploy script validates PORT.
 ```
 
-The reason can wrap onto the `//` lines below. The comment silences every
-rabot rule on that item: it documents a decision about the code, not about a
-tool.
+The reason can wrap onto the `//` lines below. Unless it says what is
+deliberate (below), the comment silences every rabot rule on that item: it
+documents a decision about the code, not about a tool.
 
 Nothing in it mentions rabot. That matters in an open-source codebase where
 rabot is one contributor's linter rather than the project's: the comment
@@ -42,9 +42,23 @@ What does not count:
   the second line of a comment;
 - doc comments (`///`): they are for the item's users, not its maintainers.
 
+## Say what is deliberate
+
+The words between the marker and the colon can say what the exception is
+about, and then it covers that and nothing else. *Deliberately unsorted*
+covers the sorting rules; *Intentional unwrap* covers `panic-in-production`:
+
+```rust
+let first = items.first().unwrap(); // Intentional unwrap: checked non-empty two lines up.
+```
+
+The `PORT` line above names nothing, so it covers both the unwrap and the
+environment read. Every word rabot knows, and how it reads them, is on
+[Say what is deliberate](deliberate.md).
+
 ## Naming the rule
 
-When you want to be precise about what is silenced, name the rules:
+To name rules by their ids instead, or to cover a whole file:
 
 ```rust
 // rabot: allow(sorted-fields) drop order matters: the guard must release first

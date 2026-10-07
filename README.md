@@ -214,6 +214,13 @@ A comment that opens with *Deliberately*, *Intentionally*, *On purpose* or
 so it fits a codebase where rabot is one contributor's tool rather than the
 project's.
 
+Say what is deliberate and the comment covers just that: *Deliberately
+unsorted* silences the sorting rules, *Intentional unwrap* silences
+`panic-in-production`, and every other rule still applies to the item. The
+[words for each rule](https://almaju.github.io/rabot/deliberate.html) are in
+the documentation. A comment that names none, like `// Intentional: ...`,
+covers every rule.
+
 To name the rules instead, `// rabot: allow(sorted-fields) reason` silences
 just those for the item, and `// rabot: allow-file(rule) reason` for the
 whole file.

@@ -35,5 +35,5 @@ historical scenario.
 ## Silence it
 
 ```rust
-let started = Instant::now(); // Intentional: request timing for the log line, nothing branches on it.
+let started = Instant::now(); // Intentionally the real clock: request timing for the log line, nothing branches on it.
 ```
