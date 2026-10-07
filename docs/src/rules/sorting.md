@@ -21,8 +21,22 @@ single-line list stays single-line and blank lines keep their place.
 
 ## What is left alone
 
-Lists whose order is semantic are never touched: `#[repr]` types, enums with
-explicit discriminants, enums deriving `PartialOrd` or `Ord`, and struct
-literals whose initializers may have side effects (reported, not rewritten).
-Function parameters are never sorted; the article calls calling convention a
-real exception.
+Lists whose order is behaviour are never touched, and need no comment:
+
+| What | Why the order matters |
+| --- | --- |
+| `#[repr(..)]` types | the memory layout follows declaration order |
+| types deriving `PartialOrd` or `Ord` | comparison goes field by field, variant by variant, in declaration order |
+| enums with explicit discriminants (`A = 1`) | the numbering is the point |
+| `#[serde(untagged)]` enums, or enums with an untagged variant | serde tries the variants top to bottom and keeps the first that fits |
+| types with a derive from [`order-sensitive-derives`](../configuration.md) | by default: clap, argh and structopt (positional arguments), borsh, bincode and SCALE (`Encode`/`Decode`, positional binary encodings), strum (`EnumIter`, `VariantArray`, `VariantNames`), uniffi (`Record`, `Enum`, `Error`: foreign constructors) |
+
+Attributes inside `#[cfg_attr(..)]` count too: a type that derives
+`uniffi::Record` only behind a feature still keeps its order.
+
+Struct literals whose initializers may have side effects are reported, not
+rewritten. Function parameters are never sorted; the article calls calling
+convention a real exception.
+
+What rabot cannot see is drop order: fields are dropped top to bottom, and
+a guard that must outlive what it protects is a reason to write down.

@@ -32,6 +32,15 @@ boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
 [sorting]
 # Pin derives to a position; the rest stay alphabetical in between.
 derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
+# Derives that read declaration order: types deriving one keep their fields
+# and variants as written. A plain name matches any path ending in it; a
+# path (`uniffi::Record`) matches only that path. PartialOrd and Ord are
+# always order-sensitive.
+order-sensitive-derives = ["Args", "BorshDeserialize", "BorshSerialize",
+                           "Decode", "Encode", "EnumIter", "FromArgs",
+                           "Parser", "StructOpt", "Subcommand",
+                           "VariantArray", "VariantNames", "uniffi::Enum",
+                           "uniffi::Error", "uniffi::Record"]
 
 [tests]
 # Rules that stay silent in test code.

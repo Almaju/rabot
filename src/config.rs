@@ -49,7 +49,7 @@ pub struct Tests {
     pub relax: Vec<Rule>,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Sorting {
     /// Derives pinned to a position. Names before `...` come first in the
@@ -58,6 +58,16 @@ pub struct Sorting {
     /// (`Eq` after `PartialEq`, `Ord` after `PartialOrd`, `Copy` after
     /// `Clone`). Empty means: no pins, only that rule.
     pub derive_order: Vec<String>,
+    /// Derives that read declaration order: a type deriving one of these
+    /// keeps its fields and variants where they are. The defaults cover
+    /// command-line parsers (positional arguments are numbered in that
+    /// order), positional binary encodings (reordering breaks every value
+    /// already encoded), strum (variants are handed out in that order) and
+    /// uniffi (foreign constructors take fields in that order). A plain
+    /// name matches the last path segment (`Parser` matches `clap::Parser`);
+    /// a path matches only that path (`uniffi::Record`). `PartialOrd` and
+    /// `Ord` are always order-sensitive and need not be listed.
+    pub order_sensitive_derives: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -232,6 +242,33 @@ impl Default for Naming {
                 "UseCase",
                 "Util",
                 "Utils",
+            ]
+            .map(str::to_string)
+            .to_vec(),
+        }
+    }
+}
+
+impl Default for Sorting {
+    fn default() -> Self {
+        Self {
+            derive_order: Vec::new(),
+            order_sensitive_derives: [
+                "Args",
+                "BorshDeserialize",
+                "BorshSerialize",
+                "Decode",
+                "Encode",
+                "EnumIter",
+                "FromArgs",
+                "Parser",
+                "StructOpt",
+                "Subcommand",
+                "VariantArray",
+                "VariantNames",
+                "uniffi::Enum",
+                "uniffi::Error",
+                "uniffi::Record",
             ]
             .map(str::to_string)
             .to_vec(),

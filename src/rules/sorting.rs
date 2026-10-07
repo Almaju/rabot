@@ -179,6 +179,21 @@ impl Sorter<'_> {
             },
         );
     }
+
+    /// Whether the declaration order of a type's fields (and variants) is
+    /// behaviour rather than layout on the page: `#[repr]` fixes the memory
+    /// layout, a derived `PartialOrd` compares field by field, and the
+    /// configured derives number, encode or iterate in that order.
+    fn order_is_semantic(&self, attrs: &[syn::Attribute]) -> bool {
+        let sensitive = &self.cx.config.sorting.order_sensitive_derives;
+        let metas = effective_metas(attrs);
+        metas.iter().any(|meta| meta.path().is_ident("repr"))
+            || derived_paths(&metas).any(|path| {
+                let last = path.segments.last().map(|segment| segment.ident.to_string());
+                matches!(last.as_deref(), Some("Ord" | "PartialOrd"))
+                    || sensitive.iter().any(|name| path_matches(&path, name))
+            })
+    }
 }
 
 impl<'ast> Visit<'ast> for Sorter<'_> {
@@ -225,10 +240,12 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
         for attr in &node.attrs {
             self.visit_attribute(attr);
         }
-        let order_is_semantic = node.attrs.iter().any(|attr| attr.path().is_ident("repr"))
+        let fields_are_semantic = self.order_is_semantic(&node.attrs);
+        let variants_are_semantic = fields_are_semantic
             || node.variants.iter().any(|variant| variant.discriminant.is_some())
-            || derives_ordering(&node.attrs);
-        if !order_is_semantic {
+            || is_untagged(&node.attrs)
+            || node.variants.iter().any(|variant| is_untagged(&variant.attrs));
+        if !variants_are_semantic {
             let members = node
                 .variants
                 .iter()
@@ -256,7 +273,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
             );
         }
         for variant in &node.variants {
-            if let syn::Fields::Named(fields) = &variant.fields {
+            if let (false, syn::Fields::Named(fields)) = (fields_are_semantic, &variant.fields) {
                 let subject = format!("fields of `{}::{}`", node.ident, variant.ident);
                 self.check_named_fields(subject, variant.ident.span(), fields);
             }
@@ -324,8 +341,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
         for attr in &node.attrs {
             self.visit_attribute(attr);
         }
-        let layout_matters = node.attrs.iter().any(|attr| attr.path().is_ident("repr"));
-        if let (false, syn::Fields::Named(fields)) = (layout_matters, &node.fields) {
+        if let (false, syn::Fields::Named(fields)) = (self.order_is_semantic(&node.attrs), &node.fields) {
             self.check_named_fields(format!("fields of `{}`", node.ident), node.ident.span(), fields);
         }
     }
@@ -441,20 +457,69 @@ fn supertrait_key(name: &str) -> String {
     }
 }
 
-/// Deriving `PartialOrd` or `Ord` makes variant order part of the semantics.
-fn derives_ordering(attrs: &[syn::Attribute]) -> bool {
-    attrs.iter().any(|attr| {
-        attr.path().is_ident("derive")
-            && attr
+/// The attributes an item may carry: each attribute as written, and the
+/// ones inside `#[cfg_attr(predicate, ..)]`, since a type that derives
+/// `uniffi::Record` behind a feature still has to keep its order.
+fn effective_metas(attrs: &[syn::Attribute]) -> Vec<syn::Meta> {
+    let mut metas = Vec::new();
+    let mut pending: Vec<syn::Meta> = attrs.iter().map(|attr| attr.meta.clone()).collect();
+    while let Some(meta) = pending.pop() {
+        let syn::Meta::List(list) = &meta else {
+            metas.push(meta);
+            continue;
+        };
+        if !list.path.is_ident("cfg_attr") {
+            metas.push(meta);
+            continue;
+        }
+        if let Ok(inner) = list.parse_args_with(Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated) {
+            pending.extend(inner.into_iter().skip(1));
+        }
+    }
+    metas
+}
+
+/// Every path in every `derive(..)` among `metas`.
+fn derived_paths(metas: &[syn::Meta]) -> impl Iterator<Item = syn::Path> + '_ {
+    metas
+        .iter()
+        .filter_map(|meta| match meta {
+            syn::Meta::List(list) if list.path.is_ident("derive") => list
                 .parse_args_with(Punctuated::<syn::Path, syn::Token![,]>::parse_terminated)
-                .is_ok_and(|paths| {
-                    paths.iter().any(|path| {
-                        path.segments.last().is_some_and(|segment| {
-                            matches!(segment.ident.to_string().as_str(), "Ord" | "PartialOrd")
-                        })
-                    })
-                })
+                .ok(),
+            _ => None,
+        })
+        .flatten()
+}
+
+/// `#[serde(untagged)]`: serde tries the variants top to bottom and keeps
+/// the first that fits, so their order decides what a value becomes.
+fn is_untagged(attrs: &[syn::Attribute]) -> bool {
+    effective_metas(attrs).iter().any(|meta| match meta {
+        syn::Meta::List(list) if list.path.is_ident("serde") => list
+            .tokens
+            .clone()
+            .into_iter()
+            .any(|token| matches!(token, proc_macro2::TokenTree::Ident(ident) if ident == "untagged")),
+        _ => false,
     })
+}
+
+/// A configured derive name against a derive path: a plain name matches
+/// the last segment, a path (`uniffi::Record`) matches the trailing segments.
+fn path_matches(path: &syn::Path, name: &str) -> bool {
+    let wanted: Vec<&str> = name.split("::").filter(|part| !part.is_empty()).collect();
+    let segments: Vec<String> = path
+        .segments
+        .iter()
+        .map(|segment| segment.ident.to_string())
+        .collect();
+    !wanted.is_empty()
+        && segments.len() >= wanted.len()
+        && segments[segments.len() - wanted.len()..]
+            .iter()
+            .zip(&wanted)
+            .all(|(segment, wanted)| segment == wanted)
 }
 
 /// An associated function (no receiver) that hands back the type.
@@ -541,6 +606,18 @@ mod tests {
             .into_iter()
             .map(|index| derives[index].to_string())
             .collect()
+    }
+
+    #[test]
+    fn configured_derives_match_by_name_or_by_path() {
+        let path = |text: &str| syn::parse_str::<syn::Path>(text).expect("path");
+        assert!(path_matches(&path("clap::Parser"), "Parser"));
+        assert!(path_matches(&path("Parser"), "Parser"));
+        assert!(path_matches(&path("::uniffi::Record"), "uniffi::Record"));
+        assert!(!path_matches(&path("Record"), "uniffi::Record"));
+        assert!(!path_matches(&path("thiserror::Error"), "uniffi::Error"));
+        assert!(!path_matches(&path("clap::Parser"), "clap"));
+        assert!(!path_matches(&path("Parser"), ""));
     }
 
     #[test]
