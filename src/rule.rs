@@ -152,16 +152,22 @@ impl Rule {
                 "A `sleep` in a test passes on your machine and fails on a loaded CI runner."
             }
             Rule::SortedDerives => "Derive lists are sorted alphabetically.",
-            Rule::SortedFields => "Struct fields are sorted alphabetically.",
+            Rule::SortedFields => "Struct fields are sorted alphabetically; a blank line starts a new group.",
             Rule::SortedImplItems => {
                 "Impl items are ordered: consts, types, constructors, pub fns, private fns."
             }
-            Rule::SortedStructLiteral => "Struct literal fields are sorted alphabetically.",
-            Rule::SortedStructPattern => "Struct pattern fields are sorted alphabetically.",
+            Rule::SortedStructLiteral => {
+                "Struct literal fields are sorted alphabetically; a blank line starts a new group."
+            }
+            Rule::SortedStructPattern => {
+                "Struct pattern fields are sorted alphabetically; a blank line starts a new group."
+            }
             Rule::SortedTraitItems => {
                 "Trait items are ordered: consts, types, then fns, each alphabetically."
             }
-            Rule::SortedVariants => "Enum variants are sorted alphabetically.",
+            Rule::SortedVariants => {
+                "Enum variants are sorted alphabetically; a blank line starts a new group."
+            }
             Rule::StringlyTypedField => "A `status: String` field is an enum that has not been written yet.",
             Rule::SwallowedError => {
                 "An empty `Err` arm or a trailing `.ok();` is a silent catch: a future 3am."

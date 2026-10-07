@@ -256,6 +256,10 @@ vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
 # come first in this order, names after it come last, the rest stay
 # alphabetical (with a derive after the trait it extends) in between.
 derive-order = ["Debug", "Clone", "Copy", "...", "Serialize", "Deserialize"]
+# Derives that read declaration order: a type deriving one keeps its fields
+# and variants as written. PartialOrd and Ord always count.
+order-sensitive-derives = ["Args", "Encode", "Parser", "Subcommand",
+                           "uniffi::Record", "..."]
 
 [tests]
 # Rules that stay silent in test code (see "Test code is different").
@@ -280,7 +284,7 @@ exclude = ["target"]           # gitignore-style globs
 
 rabot is checked by rabot in CI: `rabot fmt --check src` and
 `rabot check --strict src`. Its structs are alphabetical, its errors are
-enums, and the two places it breaks its own rules carry a reason.
+enums, and the handful of places it breaks its own rules carry a reason.
 
 The examples in the documentation are checked too. Every rule page includes
 `docs/src/rules/<rule>/bad.rs` and `good.rs`; the test suite asserts that
