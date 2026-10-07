@@ -90,8 +90,10 @@ impl PartialOrd for SortKey {
     }
 }
 
-/// One entry of a [`SourceList`]. Compared field by field, in declaration
-/// order: the paragraph it sits in, then its group rank, then its name.
+// Deliberately unsorted: the derived `Ord` compares the paragraph first,
+// then the group rank, then the name.
+/// One entry of a [`SourceList`], ordered paragraph first, then group rank,
+/// then name.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rank {
     pub paragraph: usize,
