@@ -361,6 +361,109 @@ fn a_deliberate_comment_silences_check_and_fmt() {
 }
 
 #[test]
+fn order_sensitive_lists_are_left_alone() {
+    let dir = std::env::temp_dir().join(format!("rabot-order-sensitive-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let target = dir.join("lib.rs");
+    let source = r#"#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Date {
+    year: u16,
+    month: u8,
+    day: u8,
+}
+
+#[derive(PartialEq, PartialOrd)]
+pub enum Shape {
+    Square { side: u8, at: u8 },
+    Circle { radius: u8, at: u8 },
+}
+
+#[repr(u8)]
+pub enum Tagged {
+    B { y: u8, x: u8 },
+    A,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+pub enum Value {
+    Int(i64),
+    Float(f64),
+}
+
+#[derive(serde::Deserialize)]
+#[serde(tag = "type")]
+pub enum Event {
+    Opened,
+    Closed,
+    #[serde(untagged)]
+    Unknown(String),
+}
+
+#[derive(clap::Parser)]
+pub struct Copy {
+    source: String,
+    destination: String,
+}
+
+#[cfg_attr(feature = "ffi", derive(Debug), cfg_attr(unix, derive(uniffi::Record)))]
+#[cfg_attr(feature = "serde", serde(untagged))]
+pub enum Gated {
+    Second { b: u8, a: u8 },
+    First,
+}
+
+#[derive(uniffi::Record)]
+pub struct Person {
+    last_name: String,
+    first_name: String,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    Io,
+    Bad,
+}
+
+#[derive(Record)]
+pub struct Row {
+    b: u8,
+    a: u8,
+}
+"#;
+    std::fs::write(&target, source).expect("write");
+
+    let lines = |config: Config| -> Vec<(Rule, usize)> {
+        let outcome = App::new(config, dir.clone())
+            .check(&Scope::Paths(vec![target.clone()]))
+            .expect("check runs");
+        outcome
+            .diagnostics
+            .iter()
+            .map(|diagnostic| (diagnostic.rule, diagnostic.position.line))
+            .collect()
+    };
+    assert_eq!(
+        lines(Config::default()),
+        vec![(Rule::SortedVariants, 56), (Rule::SortedFields, 62)],
+        "only `thiserror::Error` (not `uniffi::Error`) and the bare `Record`"
+    );
+    let mut config = Config::default();
+    config.sorting.order_sensitive_derives.push("Record".to_string());
+    assert_eq!(lines(config), vec![(Rule::SortedVariants, 56)]);
+
+    App::new(Config::default(), dir.clone())
+        .format(&Scope::Paths(vec![target.clone()]), FormatMode::Write)
+        .expect("fmt runs");
+    let formatted = std::fs::read_to_string(&target).expect("read");
+    let untouched = source
+        .replace("    Io,\n    Bad,", "    Bad,\n    Io,")
+        .replace("    b: u8,\n    a: u8,", "    a: u8,\n    b: u8,");
+    assert_eq!(formatted, untouched);
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
 fn packages_narrow_a_workspace_run() {
     let dir = std::env::temp_dir().join(format!("rabot-workspace-{}", std::process::id()));
     let write = |relative: &str, text: &str| {

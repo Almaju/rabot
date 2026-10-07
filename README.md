@@ -95,9 +95,14 @@ before a member move with it; whitespace stays where it was, so single-line
 lists stay single-line. `fmt` has been run over `clap_builder`, `toml` and
 `ignore`; all three still compile afterwards.
 
-rabot leaves alone lists whose order is semantic: `#[repr]` types, enums with
-explicit discriminants, and enums that derive `PartialOrd` or `Ord`. Function
-parameters are never sorted; calling convention is a real exception.
+rabot leaves alone lists whose order is behaviour, so they need no comment:
+`#[repr]` types; types deriving `PartialOrd` or `Ord`, which compare in
+declaration order; enums with explicit discriminants; `#[serde(untagged)]`
+enums, whose variants serde tries top to bottom; and types with an
+order-sensitive derive (clap's `Parser`, uniffi's `Record`, bincode's
+`Encode`, ... see `order-sensitive-derives` in the
+[configuration](https://almaju.github.io/rabot/configuration.html)).
+Function parameters are never sorted; calling convention is a real exception.
 
 ### Modeling
 

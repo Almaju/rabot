@@ -9,8 +9,14 @@
 
 Named fields of a struct, and of struct-like enum variants, are in
 alphabetical order (case-insensitive, `field2` before `field10`). Tuple
-fields are positional and never sorted. `#[repr(..)]` structs are skipped:
-their layout is the point.
+fields are positional and never sorted.
+
+Types whose field order is behaviour are skipped without a diagnostic:
+`#[repr(..)]` types (the layout is the point), types deriving `PartialOrd`
+or `Ord` (comparison goes field by field), and types with a derive from
+[`order-sensitive-derives`](../configuration.md): clap's positional
+arguments, uniffi's generated constructors, positional binary encodings.
+See [what is left alone](sorting.md#what-is-left-alone).
 
 ## Don't
 
@@ -55,4 +61,6 @@ The comment says the code is deliberate and why, without naming rabot.
 To name the rule instead: `// rabot: allow(sorted-fields) <reason>`.
 
 Field order also decides `Debug` output and serde's field order. Those are
-rarely a reason; when they are, write them down.
+rarely a reason; when they are, write them down. When a derive of yours
+reads field order (a binary encoding, code generation), add it to
+`order-sensitive-derives` instead, and every type deriving it is left alone.

@@ -7,9 +7,12 @@
 ## What it checks
 
 Enum variants are in alphabetical order. Enums whose variant order is
-semantic are skipped without a diagnostic: `#[repr(..)]` enums, enums with
-explicit discriminants (`A = 1`), and enums deriving `PartialOrd` or `Ord`,
-where declaration order is the comparison order.
+behaviour are skipped without a diagnostic: `#[repr(..)]` enums, enums with
+explicit discriminants (`A = 1`), enums deriving `PartialOrd` or `Ord`
+(declaration order is the comparison order), `#[serde(untagged)]` enums
+(serde tries the variants top to bottom), and enums with a derive from
+[`order-sensitive-derives`](../configuration.md), such as strum's
+`EnumIter`. See [what is left alone](sorting.md#what-is-left-alone).
 
 ## Don't
 
@@ -29,8 +32,9 @@ Fields of a struct-like variant are sorted too (that is
 ## Silence it
 
 An enum whose order carries meaning usually says so already: derive
-`PartialOrd` and rabot steps aside. When the meaning is not a derive, write
-it down:
+`PartialOrd` and rabot steps aside. When the meaning is a derive of your
+own, add it to `order-sensitive-derives`. When it is not a derive, write it
+down:
 
 ```rust
 // Deliberately unsorted: matches the on-wire protocol numbering.
