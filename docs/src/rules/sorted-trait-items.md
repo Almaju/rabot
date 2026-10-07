@@ -27,6 +27,3 @@ impls line up.
 // Deliberately unsorted: a state machine, methods appear in call order.
 trait Handshake { .. }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-trait-items) <reason>`.

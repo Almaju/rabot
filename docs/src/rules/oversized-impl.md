@@ -37,6 +37,3 @@ oversized-impl = 20
 // By design: a builder, one method per option is the whole point.
 impl CommandBuilder { .. }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(oversized-impl) <reason>`.

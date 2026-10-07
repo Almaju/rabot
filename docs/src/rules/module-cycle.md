@@ -55,6 +55,3 @@ breaks the cycle for both ends:
 // Deliberate, until ADS-231 moves it: the callback registry is shared with the FFI layer.
 use crate::ffi::CallbackRegistry;
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(module-cycle) <reason>`.

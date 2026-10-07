@@ -49,6 +49,3 @@ boundary-suffixes = ["Body", "Dto", "Params", "Payload", "Query", "Record",
 // Intentionally raw: mirrors the vendor's CSV columns, parsed into Reading right after.
 struct RawReading { latitude: f64, longitude: f64 }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(primitive-field) <reason>`.

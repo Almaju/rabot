@@ -36,6 +36,3 @@ it down:
 // Deliberately unsorted: matches the on-wire protocol numbering.
 enum Opcode { Connect, Publish, Subscribe, Disconnect }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-variants) <reason>`.

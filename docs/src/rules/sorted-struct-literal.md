@@ -34,6 +34,3 @@ two never has to hunt.
 // Deliberately unsorted: the token must be minted before the session id.
 Session { token: mint(&mut rng), id: next_id(&mut rng) }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-struct-literal) <reason>`.

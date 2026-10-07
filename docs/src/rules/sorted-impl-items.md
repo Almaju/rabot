@@ -40,8 +40,5 @@ impl GpsCoordinates {
 }
 ```
 
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-impl-items) <reason>`.
-
 The article's own example: one sentence says why they are together. If it
 takes more than one sentence, there is a separate type trying to escape.

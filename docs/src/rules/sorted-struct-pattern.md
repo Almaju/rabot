@@ -25,6 +25,3 @@ stays last.
 ```rust
 // Deliberately unsorted: mirrors the wire order documented in RFC-12.
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-struct-pattern) <reason>`.

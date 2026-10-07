@@ -42,6 +42,3 @@ allowed-names = ["LOG"]   # substring match, case-insensitive
 // Intentionally global: a regex compiled once, a pure value that is never swapped.
 static EMAIL: LazyLock<Regex> = LazyLock::new(|| Regex::new(..).unwrap());
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(global-state) <reason>`.

@@ -22,8 +22,8 @@ Every rule page has the same shape, so you can skim to the part you need:
 - **Principle**: the one sentence from the article the rule enforces.
 - **What it checks**: exactly when it fires.
 - **Don't** / **Do**: the code it rejects, and what to write instead.
-- **Silence it**: the allow comment or the config key, when you have a
-  reason. The reason is not optional.
+- **Silence it**: the comment that documents the exception, or the config
+  key, when you have a reason. The reason is not optional.
 
 Each page links to the article that makes the full argument. The rule is the
 enforcement; the article is the why.

@@ -28,6 +28,3 @@ The bug report says "the same person won twice". You cannot reproduce it.
 // Intentional: jitter on a retry delay, the exact value never matters.
 let jitter = rand::random::<u64>() % 50;
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(ambient-randomness) <reason>`.

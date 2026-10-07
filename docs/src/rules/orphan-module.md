@@ -42,6 +42,3 @@ orphan-modules = ["common", "helper", "helpers", "misc", "util", "utils"]
 // Intentionally a helpers module: test support only, builders and fixtures for the integration suite.
 mod helpers;
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(orphan-module) <reason>`.
