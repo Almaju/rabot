@@ -5,7 +5,8 @@
 ## What it checks
 
 The fields of a struct literal, `User { .. }`, are in alphabetical order,
-the same order as the definition. `..base` stays last.
+the same order as the definition. `..base` stays last. A blank line starts
+a new group, sorted on its own; see [groups](sorting.md#groups).
 
 rabot only rewrites a literal when every initializer is plainly side-effect
 free: literals, paths, field accesses, references, `Some(..)`, `clone()`,

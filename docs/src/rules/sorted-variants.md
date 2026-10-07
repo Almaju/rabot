@@ -14,6 +14,9 @@ explicit discriminants (`A = 1`), enums deriving `PartialOrd` or `Ord`
 [`order-sensitive-derives`](../configuration.md), such as strum's
 `EnumIter`. See [what is left alone](sorting.md#what-is-left-alone).
 
+A blank line starts a new group of variants, sorted on its own; see
+[groups](sorting.md#groups).
+
 ## Don't
 
 ```rust

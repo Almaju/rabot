@@ -17,7 +17,45 @@ of them in place; `rabot check` reports them.
 
 Order is case-insensitive and natural, so `field2` comes before `field10`.
 Comments before a member move with it. Whitespace stays where it is, so a
-single-line list stays single-line and blank lines keep their place.
+single-line list stays single-line.
+
+## Groups
+
+Alphabetical order removes the invisible system: the one in a developer's
+head that nobody else can read. Grouping related fields is not that
+system, as long as the grouping is visible. A blank line makes it visible:
+
+```rust
+struct Person {
+    // Name
+    first_name: String,
+    last_name: String,
+
+    // Address
+    city: String,
+    street: String,
+}
+```
+
+A blank line splits fields, variants, struct literals and struct patterns
+into groups, and rabot sorts each group on its own. Nothing moves across a
+blank line. A comment at the top of a group is the group's heading and stays
+there; any other comment moves with the member below it. To document the
+first field of a group rather than head the group, use a doc comment
+(`///`), which belongs to the field.
+
+Two things are not groups:
+
+- A list where *every* member is set apart by a blank line. That is
+  spacing (a blank line between each documented field, say), and the list is
+  sorted as a whole. Otherwise the style alone would switch the rule off.
+- Impl and trait items. A blank line between every method is the norm
+  there, so they are always sorted as a whole.
+
+Alphabetical order still applies inside a group, so `start, end` or
+`x, y, z` in one group are reported. When their order matters, they are
+often a type waiting to be named (`Range`, `Point`); when not, write the
+reason down.
 
 ## What is left alone
 

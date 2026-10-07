@@ -361,6 +361,163 @@ fn a_deliberate_comment_silences_check_and_fmt() {
 }
 
 #[test]
+fn blank_lines_group_fields_variants_and_literals() {
+    let dir = std::env::temp_dir().join(format!("rabot-groups-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("temp dir");
+    let target = dir.join("lib.rs");
+    let source = r#"pub struct Person {
+    first_name: u8,
+    last_name: u8,
+
+    age: u8,
+    birth_date: u8,
+}
+
+pub struct Contact {
+    // Identity
+    last_name: u8,
+    first_name: u8,
+
+    // Address
+    street: u8,
+    // Where the post goes.
+    city: u8,
+}
+
+pub struct Spaced {
+    /// Second.
+    beta: u8,
+
+    /// First.
+    alpha: u8,
+}
+
+pub enum Shape {
+    Square,
+    Circle,
+
+    Line,
+}
+
+impl Person {
+    const B: u8 = 0;
+    const A: u8 = 0;
+
+    pub fn zeta(&self) -> Person {
+        Person {
+            last_name: 0,
+            first_name: 0,
+
+            age: 0,
+            birth_date: 0,
+        }
+    }
+
+    pub fn alpha(&self) {}
+}
+"#;
+    std::fs::write(&target, source).expect("write");
+
+    let app = App::new(Config::default(), dir.clone());
+    let outcome = app
+        .check(&Scope::Paths(vec![target.clone()]))
+        .expect("check runs");
+    let mut found: Vec<(Rule, usize, &str)> = outcome
+        .diagnostics
+        .iter()
+        .map(|d| (d.rule, d.position.line, d.message.as_str()))
+        .collect();
+    found.sort();
+    assert_eq!(
+        found,
+        vec![
+            (
+                Rule::SortedFields,
+                9,
+                "fields of `Contact`: `first_name` should come before `last_name` (alphabetical order within its group)"
+            ),
+            (
+                Rule::SortedFields,
+                20,
+                "fields of `Spaced`: `alpha` should come before `beta` (alphabetical order)"
+            ),
+            (
+                Rule::SortedImplItems,
+                35,
+                "`impl Person`: `A` should come before `B` (alphabetical order)"
+            ),
+            (
+                Rule::SortedStructLiteral,
+                40,
+                "fields of `Person { .. }`: `first_name` should come before `last_name` (alphabetical order within its group)"
+            ),
+            (
+                Rule::SortedVariants,
+                28,
+                "variants of `Shape`: `Circle` should come before `Square` (alphabetical order within its group)"
+            ),
+        ]
+    );
+
+    app.format(&Scope::Paths(vec![target.clone()]), FormatMode::Write)
+        .expect("fmt runs");
+    let formatted = std::fs::read_to_string(&target).expect("read");
+    let expected = r#"pub struct Person {
+    first_name: u8,
+    last_name: u8,
+
+    age: u8,
+    birth_date: u8,
+}
+
+pub struct Contact {
+    // Identity
+    first_name: u8,
+    last_name: u8,
+
+    // Address
+    // Where the post goes.
+    city: u8,
+    street: u8,
+}
+
+pub struct Spaced {
+    /// First.
+    alpha: u8,
+
+    /// Second.
+    beta: u8,
+}
+
+pub enum Shape {
+    Circle,
+    Square,
+
+    Line,
+}
+
+impl Person {
+    const A: u8 = 0;
+    const B: u8 = 0;
+
+    pub fn alpha(&self) {}
+
+    pub fn zeta(&self) -> Person {
+        Person {
+            first_name: 0,
+            last_name: 0,
+
+            age: 0,
+            birth_date: 0,
+        }
+    }
+}
+"#;
+    assert_eq!(formatted, expected);
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
 fn order_sensitive_lists_are_left_alone() {
     let dir = std::env::temp_dir().join(format!("rabot-order-sensitive-{}", std::process::id()));
     std::fs::create_dir_all(&dir).expect("temp dir");

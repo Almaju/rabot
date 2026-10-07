@@ -8,8 +8,9 @@
 ## What it checks
 
 Named fields of a struct, and of struct-like enum variants, are in
-alphabetical order (case-insensitive, `field2` before `field10`). Tuple
-fields are positional and never sorted.
+alphabetical order (case-insensitive, `field2` before `field10`). A blank
+line starts a new group, sorted on its own; see [groups](sorting.md#groups).
+Tuple fields are positional and never sorted.
 
 Types whose field order is behaviour are skipped without a diagnostic:
 `#[repr(..)]` types (the layout is the point), types deriving `PartialOrd`
@@ -36,11 +37,27 @@ later, the struct is sediment.
 
 Nobody asks where `phone_number` goes. P comes after N, before U.
 
-If two fields belong together, say so with a type, not with proximity:
+If fields belong together, say so with a blank line. rabot sorts each
+group on its own and never moves a field across the line:
 
 ```rust
-struct UserName { first: String, last: String }
-struct UserContact { email: String, phone: String }
+struct User {
+    first_name: UserName,
+    last_name: UserName,
+
+    email: Email,
+    phone_number: Option<PhoneNumber>,
+
+    created_at: DateTime,
+    last_login_at: Option<DateTime>,
+    updated_at: DateTime,
+}
+```
+
+When a group keeps travelling together, through signatures and from one
+struct to the next, it is a type waiting to be named:
+
+```rust
 struct User {
     contact: UserContact,
     name: UserName,

@@ -6,7 +6,8 @@
 
 Fields in a struct pattern, in `let` or in a `match` arm, are alphabetical.
 Patterns have no evaluation order, so this is always safe to rewrite. `..`
-stays last.
+stays last. A blank line starts a new group, sorted on its own; see
+[groups](sorting.md#groups).
 
 ## Don't
 

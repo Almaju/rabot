@@ -95,6 +95,25 @@ before a member move with it; whitespace stays where it was, so single-line
 lists stay single-line. `fmt` has been run over `clap_builder`, `toml` and
 `ignore`; all three still compile afterwards.
 
+A blank line splits fields, variants, struct literals and patterns into
+groups, and each group is sorted on its own. Nothing moves across a blank
+line, and a comment at the top of a group stays there:
+
+```rust
+struct Person {
+    // Name
+    first_name: String,
+    last_name: String,
+
+    age: u8,
+    birth_date: Date,
+}
+```
+
+When every member is set apart by a blank line (a blank line between each
+documented field, say), that is spacing, not grouping, and the list is
+sorted as a whole. Impl and trait items are always sorted as a whole.
+
 rabot leaves alone lists whose order is behaviour, so they need no comment:
 `#[repr]` types; types deriving `PartialOrd` or `Ord`, which compare in
 declaration order; enums with explicit discriminants; `#[serde(untagged)]`
