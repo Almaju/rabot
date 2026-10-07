@@ -90,9 +90,13 @@ impl PartialOrd for SortKey {
     }
 }
 
-/// One entry of a [`SourceList`]: a group rank first, then the name.
+// Deliberately unsorted: the derived `Ord` compares the paragraph first,
+// then the group rank, then the name.
+/// One entry of a [`SourceList`], ordered paragraph first, then group rank,
+/// then name.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Rank {
+    pub paragraph: usize,
     pub group: u8,
     pub key: SortKey,
 }
@@ -102,7 +106,13 @@ impl Rank {
         Self {
             group,
             key: SortKey::new(name),
+            paragraph: 0,
         }
+    }
+
+    /// The same rank, kept inside paragraph `paragraph` of its list.
+    pub fn in_paragraph(self, paragraph: usize) -> Self {
+        Self { paragraph, ..self }
     }
 }
 
@@ -142,6 +152,9 @@ struct Member {
     /// Offset at the end of everything that belongs to this member.
     chunk_end: usize,
     has_separator: bool,
+    /// Index of the blank-line paragraph the member sits in; always 0
+    /// unless the list was [grouped](SourceList::grouped_by_blank_lines).
+    paragraph: usize,
     /// Same-line comment after the member, if any.
     trailing_comment: Range<usize>,
 }
@@ -183,6 +196,7 @@ impl<'a> SourceList<'a> {
                 body,
                 chunk_end,
                 has_separator,
+                paragraph: 0,
                 trailing_comment,
             });
         }
@@ -195,29 +209,59 @@ impl<'a> SourceList<'a> {
         }
     }
 
+    /// Split the list at blank lines into paragraphs, each sorted on its
+    /// own: members never move from one paragraph to another, and the
+    /// comment heading a paragraph stays at its head. A list where every
+    /// member is set apart by a blank line is spaced out, not grouped, and
+    /// stays one paragraph.
+    pub fn grouped_by_blank_lines(mut self) -> Self {
+        let breaks: Vec<bool> = (0..self.members.len())
+            .map(|index| index > 0 && has_blank_line(&self.text[self.lead(index)]))
+            .collect();
+        if breaks.iter().skip(1).all(|starts| *starts) {
+            return self;
+        }
+        let mut paragraph = 0;
+        for (member, starts) in self.members.iter_mut().zip(breaks) {
+            paragraph += usize::from(starts);
+            member.paragraph = paragraph;
+        }
+        self
+    }
+
+    /// Whether the list has more than one paragraph. Paragraphs only count
+    /// up, so the last member tells.
+    pub fn is_grouped(&self) -> bool {
+        self.members.last().is_some_and(|member| member.paragraph > 0)
+    }
+
+    /// The paragraph of each member, in source order.
+    pub fn paragraphs(&self) -> Vec<usize> {
+        self.members.iter().map(|member| member.paragraph).collect()
+    }
+
     /// The edit that rewrites the list in `order`.
     ///
     /// The whitespace before each slot stays where it is, so a single-line
     /// list stays single-line and blank lines keep their positions. Comments
-    /// travel with the member they describe.
+    /// travel with the member they describe, except the comment heading a
+    /// paragraph, which stays at the head.
     pub fn reordered(&self, order: &[usize]) -> Edit {
         let last_had_separator = self.members.last().is_some_and(|member| member.has_separator);
-        let mut previous_end = self.open;
-        let leads: Vec<Lead> = self
-            .members
-            .iter()
-            .map(|member| {
-                let lead = Lead::split(self.text, previous_end..member.body.start);
-                previous_end = member.chunk_end;
-                lead
-            })
+        let leads: Vec<Lead> = (0..self.members.len())
+            .map(|index| Lead::split(self.text, self.lead(index)))
             .collect();
         let trailer_start = self.members.last().map_or(self.open, |member| member.chunk_end);
         let mut out = String::new();
         for (slot, index) in order.iter().enumerate() {
             let member = &self.members[*index];
             out.push_str(&self.text[leads[slot].whitespace.clone()]);
-            out.push_str(&self.text[leads[*index].comments.clone()]);
+            if self.heads_paragraph(slot) {
+                out.push_str(&self.text[leads[slot].comments.clone()]);
+            }
+            if !self.heads_paragraph(*index) {
+                out.push_str(&self.text[leads[*index].comments.clone()]);
+            }
             out.push_str(&self.text[member.body.clone()]);
             let is_last = slot == order.len() - 1;
             if let Some(separator) = self.separator
@@ -232,6 +276,23 @@ impl<'a> SourceList<'a> {
         }
         out.push_str(&self.text[trailer_start..self.close]);
         Edit::new(self.open..self.close, out)
+    }
+
+    /// Whether the member at `index` opens a paragraph of a grouped list,
+    /// so that the comments above it head the paragraph.
+    fn heads_paragraph(&self, index: usize) -> bool {
+        self.is_grouped()
+            && (index == 0 || self.members[index].paragraph != self.members[index - 1].paragraph)
+    }
+
+    /// The text between the previous member (or the opening delimiter) and
+    /// the member at `index`: whitespace and comments.
+    fn lead(&self, index: usize) -> Range<usize> {
+        let start = match index {
+            0 => self.open,
+            _ => self.members[index - 1].chunk_end,
+        };
+        start..self.members[index].body.start
     }
 }
 
@@ -253,6 +314,16 @@ impl Lead {
             whitespace: range.start..first_visible,
         }
     }
+}
+
+/// Whether `text` holds an empty line: two line breaks with nothing but
+/// spaces between them.
+fn has_blank_line(text: &str) -> bool {
+    let lines: Vec<&str> = text.split('\n').collect();
+    lines.len() > 2
+        && lines[1..lines.len() - 1]
+            .iter()
+            .any(|line| line.trim().is_empty())
 }
 
 fn skip_blanks(text: &str, mut cursor: usize) -> usize {
@@ -298,6 +369,14 @@ mod tests {
     }
 
     fn reorder(text: &str, bodies: &[&str], separator: Option<char>) -> String {
+        reorder_list(text, bodies, separator, false)
+    }
+
+    fn reorder_grouped(text: &str, bodies: &[&str]) -> String {
+        reorder_list(text, bodies, Some(','), true)
+    }
+
+    fn reorder_list(text: &str, bodies: &[&str], separator: Option<char>, grouped: bool) -> String {
         let open = text.find('{').unwrap() + 1;
         let close = text.rfind('}').unwrap();
         let ranges: Vec<Range<usize>> = bodies
@@ -307,10 +386,14 @@ mod tests {
                 start..start + body.len()
             })
             .collect();
-        let list = SourceList::new(text, open..close, ranges, separator);
+        let mut list = SourceList::new(text, open..close, ranges, separator);
+        if grouped {
+            list = list.grouped_by_blank_lines();
+        }
         let names: Vec<Rank> = bodies
             .iter()
-            .map(|body| Rank::new(0, body.split(':').next().unwrap()))
+            .zip(list.paragraphs())
+            .map(|(body, paragraph)| Rank::new(0, body.split(':').next().unwrap()).in_paragraph(paragraph))
             .collect();
         let order = sorted_order(&names).unwrap();
         let edit = list.reordered(&order);
@@ -353,5 +436,40 @@ mod tests {
         let text = "impl A {\n    fn b() {}\n\n    fn a() {}\n}";
         let out = reorder(text, &["fn b() {}", "fn a() {}"], None);
         assert_eq!(out, "impl A {\n    fn a() {}\n\n    fn b() {}\n}");
+    }
+
+    #[test]
+    fn finds_blank_lines() {
+        assert!(has_blank_line("\n\n    "));
+        assert!(has_blank_line(",\n    \t\n    "));
+        assert!(!has_blank_line("\n    "));
+        assert!(!has_blank_line("\n    // note\n    "));
+    }
+
+    #[test]
+    fn sorts_each_paragraph_on_its_own() {
+        let text = "struct A {\n    d: D,\n    c: C,\n\n    b: B,\n    a: A,\n}";
+        let out = reorder_grouped(text, &["d: D", "c: C", "b: B", "a: A"]);
+        assert_eq!(out, "struct A {\n    c: C,\n    d: D,\n\n    a: A,\n    b: B,\n}");
+    }
+
+    #[test]
+    fn a_comment_heading_a_paragraph_stays_at_its_head() {
+        let text = "struct A {\n    // Names\n    b: B,\n    a: A,\n\n    // Other\n    d: D,\n    // about c\n    c: C,\n}";
+        let out = reorder_grouped(text, &["b: B", "a: A", "d: D", "c: C"]);
+        assert_eq!(
+            out,
+            "struct A {\n    // Names\n    a: A,\n    b: B,\n\n    // Other\n    // about c\n    c: C,\n    d: D,\n}"
+        );
+    }
+
+    #[test]
+    fn a_list_spaced_by_blank_lines_is_one_paragraph() {
+        let text = "struct A {\n    /// B.\n    b: B,\n\n    /// A.\n    a: A,\n}";
+        let out = reorder_grouped(text, &["/// B.\n    b: B", "/// A.\n    a: A"]);
+        assert_eq!(
+            out,
+            "struct A {\n    /// A.\n    a: A,\n\n    /// B.\n    b: B,\n}"
+        );
     }
 }

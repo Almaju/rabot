@@ -59,6 +59,9 @@ struct Candidate {
     open: usize,
     /// How members within one group are ordered, for the message.
     order_note: &'static str,
+    /// True when blank lines split the list into paragraphs, each sorted on
+    /// its own.
+    paragraphs: bool,
     separator: Option<char>,
     /// Where the diagnostic points.
     span: Span,
@@ -68,7 +71,23 @@ struct Candidate {
 
 impl Sorter<'_> {
     fn check(&mut self, rule: Rule, candidate: Candidate) {
-        let ranks: Vec<Rank> = candidate.members.iter().map(|(rank, _)| rank.clone()).collect();
+        let (ranks, bodies): (Vec<Rank>, Vec<Range<usize>>) = candidate.members.into_iter().unzip();
+        let list = SourceList::new(
+            &self.cx.file.text,
+            candidate.open..candidate.close,
+            bodies,
+            candidate.separator,
+        );
+        let list = if candidate.paragraphs {
+            list.grouped_by_blank_lines()
+        } else {
+            list
+        };
+        let ranks: Vec<Rank> = ranks
+            .into_iter()
+            .zip(list.paragraphs())
+            .map(|(rank, paragraph)| rank.in_paragraph(paragraph))
+            .collect();
         let Some(order) = sorted_order(&ranks) else {
             return;
         };
@@ -76,13 +95,15 @@ impl Sorter<'_> {
             return;
         };
         let (first, second) = (&ranks[before], &ranks[after]);
-        let why = if first.group == second.group {
-            candidate.order_note.to_string()
-        } else {
+        let why = if first.group != second.group {
             format!(
                 "{} come before {}",
                 candidate.groups[second.group as usize], candidate.groups[first.group as usize]
             )
+        } else if list.is_grouped() {
+            format!("{} within its group", candidate.order_note)
+        } else {
+            candidate.order_note.to_string()
         };
         let message = format!(
             "{}: `{}` should come before `{}` ({why})",
@@ -101,17 +122,9 @@ impl Sorter<'_> {
         {
             return;
         }
-        if !candidate.fixable {
-            return;
+        if candidate.fixable {
+            self.findings.edits.push(list.reordered(&order));
         }
-        let bodies = candidate.members.into_iter().map(|(_, range)| range).collect();
-        let list = SourceList::new(
-            &self.cx.file.text,
-            candidate.open..candidate.close,
-            bodies,
-            candidate.separator,
-        );
-        self.findings.edits.push(list.reordered(&order));
     }
 
     fn check_derive(&mut self, attr: &syn::Attribute) {
@@ -147,6 +160,7 @@ impl Sorter<'_> {
                 members,
                 open: self.cx.file.range(paren.span.open()).end,
                 order_note: DERIVE_ALPHABETICAL,
+                paragraphs: false,
                 separator: Some(','),
                 span: attr.span(),
                 subject: "derive list".to_string(),
@@ -173,6 +187,7 @@ impl Sorter<'_> {
                 members,
                 open: self.cx.file.range(brace.open()).end,
                 order_note: ALPHABETICAL,
+                paragraphs: true,
                 separator: Some(','),
                 span,
                 subject,
@@ -228,6 +243,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                 members,
                 open: self.cx.file.range(brace.open()).end,
                 order_note: ALPHABETICAL,
+                paragraphs: true,
                 separator: Some(','),
                 span: node.path.span(),
                 subject: format!("fields of `{name} {{ .. }}`"),
@@ -266,6 +282,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     members,
                     open: self.cx.file.range(brace.open()).end,
                     order_note: ALPHABETICAL,
+                    paragraphs: true,
                     separator: Some(','),
                     span: node.ident.span(),
                     subject: format!("variants of `{}`", node.ident),
@@ -328,6 +345,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     members,
                     open: self.cx.file.range(brace.open()).end,
                     order_note: ALPHABETICAL,
+                    paragraphs: false,
                     separator: None,
                     span: node.impl_token.span(),
                     subject,
@@ -372,6 +390,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                     members,
                     open: self.cx.file.range(brace.open()).end,
                     order_note: ALPHABETICAL,
+                    paragraphs: false,
                     separator: None,
                     span: node.ident.span(),
                     subject: format!("`trait {}`", node.ident),
@@ -404,6 +423,7 @@ impl<'ast> Visit<'ast> for Sorter<'_> {
                 members,
                 open: self.cx.file.range(brace.open()).end,
                 order_note: ALPHABETICAL,
+                paragraphs: true,
                 separator: Some(','),
                 span: node.path.span(),
                 subject: format!("fields of pattern `{name} {{ .. }}`"),
@@ -440,6 +460,7 @@ impl DerivePins {
         Rank {
             group: 1,
             key: SortKey::new(&supertrait_key(name)).labelled(name),
+            paragraph: 0,
         }
     }
 }
