@@ -143,7 +143,7 @@ impl Packages {
 /// `path` in a form two spellings of the same file agree on: absolute and
 /// with symlinks resolved when it exists, as given otherwise.
 fn comparable(path: &Path) -> PathBuf {
-    // rabot: allow(dropped-error-context) a path that cannot be resolved is compared as given, not reported
+    // Deliberately drops the context: a path that cannot be resolved is compared as given, not reported.
     std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 

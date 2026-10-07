@@ -236,7 +236,7 @@ impl Cli {
 
 /// `ExitCode` is not ours to `impl` on, and `Outcome` does not know about
 /// process exit codes, so this stays a free function.
-// rabot: allow(free-function) ExitCode is a foreign type; Outcome is process-agnostic
+// Deliberately a free function: ExitCode is a foreign type, and Outcome knows nothing of processes.
 fn exit_code(outcome: &Outcome, strict: bool) -> ExitCode {
     if outcome.has_errors() || (strict && outcome.count(Level::Warn) > 0) {
         ExitCode::from(1)
@@ -247,7 +247,7 @@ fn exit_code(outcome: &Outcome, strict: bool) -> ExitCode {
 
 /// rustfmt every file rabot rewrote. A missing rustfmt is a note, not an
 /// error: the reordering already happened and is valid Rust.
-// rabot: allow(free-function) Outcome is a report; running external tools on it is the CLI's job
+// Deliberately a free function: Outcome is a report, and running external tools on it is the CLI's job.
 fn reindent(outcome: &Outcome) {
     if outcome.changed.is_empty() {
         return;
