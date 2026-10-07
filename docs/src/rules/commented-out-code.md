@@ -33,6 +33,3 @@ not need it.
 ```rust
 // Intentionally kept: the two lines below are the shape of the RFC-12 payload.
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(commented-out-code) <reason>`.

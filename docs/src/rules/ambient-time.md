@@ -37,6 +37,3 @@ historical scenario.
 ```rust
 let started = Instant::now(); // Intentional: request timing for the log line, nothing branches on it.
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(ambient-time) <reason>`.

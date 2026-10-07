@@ -35,6 +35,3 @@ the first request that reaches that code path.
 ```rust
 // Intentional: RUST_LOG is the logger's own contract, read by the logging crate.
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(ambient-config) <reason>`.

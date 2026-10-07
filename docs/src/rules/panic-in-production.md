@@ -37,8 +37,5 @@ Startup is the exception: the program cannot run without its config, and
 let first = items.first().unwrap(); // Intentional: `items` was checked non-empty two lines up.
 ```
 
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(panic-in-production) <reason>`.
-
 An invariant that proves programmer error is the article's other exception.
 Say which invariant.

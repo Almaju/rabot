@@ -39,6 +39,3 @@ too-many-parameters = 7
 ```rust
 // Deliberately long: mirrors the C ABI of libfoo_render exactly.
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(too-many-parameters) <reason>`.

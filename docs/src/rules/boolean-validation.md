@@ -32,6 +32,3 @@ past this line checks the email again.
 // Deliberately a bool: a pure predicate used in a filter, there is no caller to inform.
 fn is_valid_utf8(bytes: &[u8]) -> bool { .. }
 ```
-
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(boolean-validation) <reason>`.

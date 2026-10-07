@@ -57,9 +57,6 @@ struct Connection {
 }
 ```
 
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(sorted-fields) <reason>`.
-
 Field order also decides `Debug` output and serde's field order. Those are
 rarely a reason; when they are, write them down. When a derive of yours
 reads field order (a binary encoding, code generation), add it to

@@ -45,7 +45,4 @@ vague-suffixes = ["Controller", "Coordinator", "Handler", "Helper", "Manager",
 struct OrderRepository { .. }
 ```
 
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(vague-type-name) <reason>`.
-
 If you are genuinely implementing the pattern, own it. Write down why.

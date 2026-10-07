@@ -42,8 +42,5 @@ primitive-soup = 2   # parameters of the same primitive type before it fires
 fn clamp(value: f64, min: f64, max: f64) -> f64 { .. }
 ```
 
-The comment says the code is deliberate and why, without naming rabot.
-To name the rule instead: `// rabot: allow(primitive-soup) <reason>`.
-
 The article's own exception: genuinely stateless math, where no parameter
 means anything on its own.
